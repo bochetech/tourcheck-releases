@@ -1,0 +1,85 @@
+id: cl-mineduc-test
+version: 2026-03
+vigencia_desde: '2026-03-04'
+fuente:
+  pais: CL
+  organismo: MINEDUC-UCE
+  url: https://www.curriculumnacional.cl/
+licencia_por_defecto:
+  tipo: CC-BY-SA
+  url: https://creativecommons.org/licenses/by-sa/4.0/
+  puede_redistribuir: true
+objetivos:
+- codigo: MA02 OA 01
+  texto: Conceptualizar representaciones numericas polivalentes mediante procedimientos algoritmicos sistematizados.
+  asignatura: MA
+  nivel: '02'
+  unidad: Unidad 1
+  tipo: conocimiento
+  prioridad: nivel-1
+  en_temario_examen: true
+  prerequisitos:
+  - MA02 OA 03
+  horas_estimadas: 20.0
+  resumen: Resumen de MA02 OA 01.
+  items:
+  - MA02 OA 01-item-1
+  fuente:
+    doc: Temario 2 basico
+    pagina: 3
+    url: https://ejemplo.cl/t.pdf
+  licencia:
+    tipo: CC-BY-SA
+    url: https://creativecommons.org/licenses/by-sa/4.0/
+    puede_redistribuir: true
+  confianza: 0.95
+- codigo: MA02 OA 02
+  texto: Sumar numeros de dos cifras con material concreto.
+  asignatura: MA
+  nivel: '02'
+  unidad: Unidad 1
+  tipo: conocimiento
+  prioridad: nivel-1
+  en_temario_examen: true
+  prerequisitos:
+  - MA02 OA 01
+  horas_estimadas: 20.0
+  resumen: Resumen de MA02 OA 02.
+  fuente:
+    doc: Temario 2 basico
+    pagina: 3
+    url: https://ejemplo.cl/t.pdf
+  licencia:
+    tipo: CC-BY-SA
+    url: https://creativecommons.org/licenses/by-sa/4.0/
+    puede_redistribuir: true
+  confianza: 0.95
+- codigo: MA02 OA 03
+  texto: Restar numeros de dos cifras y revisar el resultado.
+  asignatura: MA
+  nivel: '02'
+  unidad: Unidad 1
+  tipo: conocimiento
+  prioridad: nivel-1
+  en_temario_examen: true
+  prerequisitos:
+  - MA02 OA 02
+  horas_estimadas: 20.0
+  resumen: Resumen de MA02 OA 03.
+  items:
+  - MA02 OA 03-item-1
+  licencia:
+    tipo: CC-BY-SA
+    url: https://creativecommons.org/licenses/by-sa/4.0/
+    puede_redistribuir: true
+  confianza: 0.95
+temario:
+  '02':
+  - MA02 OA 01
+  - MA02 OA 02
+  - MA02 OA 03
+  - MA02 OA 07
+plan_horas:
+  '02':
+    MA: 60.0
+semanas_lectivas: 38
