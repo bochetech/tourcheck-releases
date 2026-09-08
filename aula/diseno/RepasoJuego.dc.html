@@ -1,0 +1,235 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+  <style>
+    :root {
+      --papel: oklch(0.975 0.014 85);
+      --papel-alto: oklch(0.995 0.006 85);
+      --tinta: oklch(0.28 0.03 60);
+      --tinta-suave: oklch(0.52 0.03 60);
+      --terracota: oklch(0.62 0.14 45);
+      --teal: oklch(0.62 0.14 200);
+      --verde: oklch(0.62 0.14 145);
+      --borde: oklch(0.90 0.02 75);
+      --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+      --lectura: "Literata", ui-serif, Georgia, serif;
+    }
+    body { margin: 0; background: var(--papel); color: var(--tinta); font-family: var(--lectura); }
+    a { color: var(--terracota); } a:hover { color: oklch(0.52 0.14 45); }
+    .decena { transition: transform .12s ease, box-shadow .12s ease; }
+    .decena:hover { transform: translateY(-4px); box-shadow: 0 6px 0 oklch(0.50 0.13 45); }
+    .unidad-va { opacity: .3; }
+  </style>
+</helmet>
+
+<div style="width: 1024px; height: 768px; display: flex; background: var(--papel); overflow: hidden">
+
+  <div style="width: 236px; flex-shrink: 0; background: var(--papel-alto); border-right: 1.5px solid var(--borde); display: flex; flex-direction: column; align-items: center; padding: 26px 20px; gap: 14px">
+    <div>{{copiSvg}}</div>
+    <div style="font-family: var(--display); font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Copi</div>
+    <div style="display: flex; align-items: center; gap: 8px; background: oklch(0.62 0.14 200 / 0.12); border-radius: 999px; padding: 7px 14px">
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--verde)"></span>
+      <span style="font-family: var(--display); font-size: 14px; font-weight: 600; color: oklch(0.44 0.13 200)">{{estadoTexto}}</span>
+    </div>
+    <div style="background: var(--papel); border: 1.5px solid var(--borde); border-radius: 16px; padding: 14px 16px; font-size: 16px; line-height: 1.45; text-align: center">
+      {{dice}}
+    </div>
+    <div style="flex-grow: 1"></div>
+    <div style="font-size: 13px; color: var(--tinta-suave); text-align: center; line-height: 1.45">Repaso 3 de 5<br>de lo que vimos hace 4 días</div>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; padding: 26px 32px 28px 32px; overflow: hidden">
+
+    <div style="display: flex; align-items: baseline; justify-content: space-between">
+      <div style="font-family: var(--display); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tinta-suave)">El taller de Copi</div>
+      <div style="display: flex; gap: 7px">
+        <div style="width: 13px; height: 13px; border-radius: 50%; background: var(--verde)"></div>
+        <div style="width: 13px; height: 13px; border-radius: 50%; background: var(--verde)"></div>
+        <div style="width: 19px; height: 19px; border-radius: 50%; background: var(--terracota); box-shadow: 0 0 0 5px oklch(0.62 0.14 45 / 0.18)"></div>
+        <div style="width: 13px; height: 13px; border-radius: 50%; background: var(--borde)"></div>
+        <div style="width: 13px; height: 13px; border-radius: 50%; background: var(--borde)"></div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: baseline; gap: 18px; margin-top: 12px; font-family: var(--display); font-weight: 800; font-size: 46px; letter-spacing: -0.02em; line-height: 1">
+      <span>42</span><span style="color: var(--terracota)">&minus;</span><span>15</span>
+      <sc-if value="{{listo}}" hint-placeholder-val="{{ true }}">
+        <span style="color: var(--tinta-suave)">=</span><span style="color: var(--verde)">{{resultado}}</span>
+      </sc-if>
+    </div>
+
+    <div style="background: var(--papel-alto); border: 1.5px solid var(--borde); border-radius: 22px; padding: 24px 26px; margin-top: 18px; flex-grow: 1; display: flex; flex-direction: column">
+
+      <div style="display: flex; gap: 34px; flex-grow: 1">
+
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <div style="font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--tinta-suave); letter-spacing: 0.05em; text-transform: uppercase">Decenas</div>
+          <div style="display: flex; gap: 12px; align-items: flex-start">
+            <sc-for list="{{decenas}}" as="d" hint-placeholder-count="4">
+              <div class="decena" style="{{d.estilo}}" onClick="{{d.tocar}}">
+                <sc-for list="{{d.puntos}}" as="p" hint-placeholder-count="10">
+                  <div style="width: 18px; height: 18px; border-radius: 5px; background: oklch(1 0 0 / 0.55)"></div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="width: 1.5px; background: var(--borde)"></div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; flex-grow: 1">
+          <div style="font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--tinta-suave); letter-spacing: 0.05em; text-transform: uppercase">Unidades</div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-content: flex-start; max-width: 330px">
+            <sc-for list="{{unidades}}" as="u" hint-placeholder-count="2">
+              <div style="{{u.estilo}}"></div>
+            </sc-for>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px; margin-top: 20px; min-height: 74px">
+        <sc-for list="{{acciones}}" as="a" hint-placeholder-count="1">
+          <button style="{{a.estilo}}" onClick="{{a.hacer}}">{{a.texto}}</button>
+        </sc-for>
+        <sc-if value="{{listo}}" hint-placeholder-val="{{ true }}">
+          <button style="height: 74px; padding: 0 30px; border-radius: 20px; border: none; background: var(--verde); color: white; font-family: var(--display); font-size: 22px; font-weight: 800; cursor: pointer; letter-spacing: -0.01em" onClick="{{reiniciar}}">Siguiente repaso</button>
+        </sc-if>
+      </div>
+
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px; margin-top: 14px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" stroke="var(--tinta-suave)" stroke-width="1.8"/>
+        <path d="M12 8v5" stroke="var(--tinta-suave)" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="12" cy="16.4" r="1.1" fill="var(--tinta-suave)"/>
+      </svg>
+      <span style="font-size: 15px; color: var(--tinta-suave)">{{pista}}</span>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1024,"height":768}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { rota: false, quitadasU: false, quitadaD: false };
+  }
+
+  copi(estado) {
+    const oscuro = 'oklch(0.24 0.04 240)';
+    const ojos = estado === 'contento'
+      ? '<path d="M39.5 63.5q6.5-8 13 0" stroke="' + oscuro + '" stroke-width="4.4" fill="none" stroke-linecap="round"/>' +
+        '<path d="M67.5 63.5q6.5-8 13 0" stroke="' + oscuro + '" stroke-width="4.4" fill="none" stroke-linecap="round"/>'
+      : '<circle cx="46" cy="62" r="6.5" fill="' + oscuro + '"/><circle cx="74" cy="62" r="6.5" fill="' + oscuro + '"/>' +
+        '<circle cx="48.3" cy="59.4" r="2.1" fill="white"/><circle cx="76.3" cy="59.4" r="2.1" fill="white"/>';
+    const boca = estado === 'contento'
+      ? '<path d="M49 76q11 11 22 0" stroke="' + oscuro + '" stroke-width="3.4" fill="none" stroke-linecap="round"/>'
+      : '<path d="M52 79q8 7 16 0" stroke="' + oscuro + '" stroke-width="3.2" fill="none" stroke-linecap="round"/>';
+    return '<svg width="148" height="148" viewBox="0 0 120 120" fill="none" aria-label="Copi">' +
+      '<ellipse cx="60" cy="112" rx="33" ry="5.5" fill="oklch(0.28 0.03 60 / 0.10)"/>' +
+      '<path d="M60 24c0-8 6-14 14-14 0 8-6 14-14 14z" fill="var(--verde)"/>' +
+      '<path d="M60 24c0-7-5-12-12-11 1 7 5 11 12 11z" fill="var(--verde)" opacity="0.72"/>' +
+      '<path d="M60 24v7" stroke="var(--verde)" stroke-width="3.4" stroke-linecap="round"/>' +
+      '<rect x="16" y="30" width="88" height="78" rx="33" fill="var(--teal)"/>' +
+      '<rect x="25" y="38" width="70" height="50" rx="25" fill="oklch(0.72 0.10 200)"/>' +
+      ojos + boca + '</svg>';
+  }
+
+  renderVals() {
+    const { rota, quitadasU, quitadaD } = this.state;
+    const listo = quitadasU && quitadaD;
+
+    const nDecenas = (rota ? 3 : 4) - (quitadaD ? 1 : 0);
+    const nUnidades = (rota ? 12 : 2) - (quitadasU ? 5 : 0);
+
+    const estiloDecena =
+      'width: 46px; padding: 8px; border-radius: 12px; background: var(--terracota); ' +
+      'display: flex; flex-direction: column; gap: 4px; align-items: center; ' +
+      'box-shadow: 0 4px 0 oklch(0.50 0.13 45); ' +
+      (rota ? 'cursor: default;' : 'cursor: pointer;');
+
+    const decenas = [];
+    for (let i = 0; i < nDecenas; i++) {
+      decenas.push({
+        estilo: estiloDecena,
+        puntos: [1,2,3,4,5,6,7,8,9,10],
+        tocar: rota ? null : () => this.setState({ rota: true }),
+      });
+    }
+
+    const unidades = [];
+    for (let i = 0; i < nUnidades; i++) {
+      const nueva = rota && i >= 2;
+      unidades.push({
+        estilo: 'width: 34px; height: 34px; border-radius: 9px; background: ' +
+          (nueva ? 'var(--teal)' : 'var(--terracota)') +
+          '; box-shadow: 0 3px 0 ' + (nueva ? 'oklch(0.50 0.13 200)' : 'oklch(0.50 0.13 45)') + ';',
+      });
+    }
+
+    const botonBase = 'height: 74px; padding: 0 28px; border-radius: 20px; border: none; ' +
+      'font-family: var(--display); font-size: 21px; font-weight: 800; letter-spacing: -0.01em; ' +
+      'cursor: pointer; color: white;';
+
+    const acciones = [];
+    if (rota && !quitadasU) {
+      acciones.push({
+        texto: 'Quitar 5 unidades',
+        estilo: botonBase + ' background: var(--teal); box-shadow: 0 4px 0 oklch(0.50 0.13 200);',
+        hacer: () => this.setState({ quitadasU: true }),
+      });
+    }
+    if (quitadasU && !quitadaD) {
+      acciones.push({
+        texto: 'Quitar 1 decena',
+        estilo: botonBase + ' background: var(--terracota); box-shadow: 0 4px 0 oklch(0.50 0.13 45);',
+        hacer: () => this.setState({ quitadaD: true }),
+      });
+    }
+
+    let dice, estadoTexto, pista, estado;
+    if (!rota) {
+      estado = 'atento';
+      estadoTexto = 'juega contigo';
+      dice = 'Hay que quitar 5, pero solo tenemos 2 sueltas.<br>¿Y si abrimos una barra?';
+      pista = 'Toca una barra naranja para abrirla.';
+    } else if (!quitadasU) {
+      estado = 'contento';
+      estadoTexto = '¡eso!';
+      dice = '¡Eso es! Una barra son diez unidades.<br>Ahora sí alcanzan.';
+      pista = 'Las azules son las diez que acaban de salir de la barra.';
+    } else if (!quitadaD) {
+      estado = 'atento';
+      estadoTexto = 'juega contigo';
+      dice = 'Quedan 7 sueltas.<br>Falta quitar la decena del 15.';
+      pista = 'El 15 son 1 decena y 5 unidades: ya fueron las unidades.';
+    } else {
+      estado = 'contento';
+      estadoTexto = 'lo lograron';
+      dice = 'Quedan 2 barras y 7 sueltas.<br>Veintisiete. Lo hiciste tú.';
+      pista = 'Abrir una decena para poder restar se llama canje.';
+    }
+
+    return {
+      decenas, unidades, acciones, listo,
+      resultado: nDecenas * 10 + nUnidades,
+      copiSvg: this.copi(estado),
+      estadoTexto, dice, pista,
+      reiniciar: () => this.setState({ rota: false, quitadasU: false, quitadaD: false }),
+    };
+  }
+}
+</script>
+</body>
+</html>

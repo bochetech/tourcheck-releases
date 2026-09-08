@@ -21,6 +21,7 @@
       --verde: oklch(0.72 0.14 145);
       --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
       --lectura: "Literata", ui-serif, Georgia, serif;
+      --mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
     }
     body { margin: 0; background: var(--fondo); color: var(--tinta); font-family: var(--lectura); }
     a { color: var(--teal); } a:hover { color: oklch(0.82 0.12 200); }
@@ -46,6 +47,19 @@
   <div style="display: flex; gap: 28px; padding: 32px 44px; flex-grow: 1">
 
     <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 18px">
+      <div style="display: flex; align-items: flex-start; gap: 14px; background: var(--sup); border: 1px solid var(--borde); border-radius: 12px; padding: 18px 22px">
+        <div style="flex-shrink: 0; margin-top: 1px"><svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-label="Copi"><rect width="30" height="30" rx="9" fill="oklch(0.72 0.14 200 / 0.16)"/><path d="M15 21c0-4.4 3.2-7.6 7.6-7.6 0 4.4-3.2 7.6-7.6 7.6z" fill="var(--teal)"/><path d="M15 21c0-3.9-2.8-6.7-6.6-6.5.5 3.9 2.7 6.5 6.6 6.5z" fill="var(--teal)" opacity="0.62"/><path d="M15 21v3" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+        <div style="flex-grow: 1">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <span style="font-family: var(--display); font-size: 15px; font-weight: 600">Copi</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: var(--verde)"></span><span style="font-size: 13px; color: var(--verde)">contigo</span></span>
+          </div>
+          <div style="font-size: 15px; color: var(--tinta-suave); margin-top: 7px; line-height: 1.55">
+            Ayer te faltó cambiar el signo al pasar el 5 al otro lado. Empecemos por ahí y lo cerramos hoy.
+          </div>
+        </div>
+      </div>
+
       <div style="display: flex; align-items: baseline; justify-content: space-between">
         <h2 style="margin: 0; font-family: var(--display); font-size: 21px; font-weight: 600; letter-spacing: -0.005em">Plan de hoy</h2>
         <span style="font-size: 14px; color: var(--tinta-suave)">fijado anoche &middot; puedes reordenar</span>
@@ -65,7 +79,7 @@
             <div style="font-family: var(--display); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal)">Ahora &middot; Matemática</div>
             <div style="font-family: var(--display); font-size: 23px; font-weight: 600; margin-top: 8px; letter-spacing: -0.005em">Ecuaciones de primer grado</div>
             <div style="font-size: 15px; color: var(--tinta-suave); margin-top: 8px; line-height: 1.5; max-width: 500px">
-              MA07 OA 06 &middot; despejar la incógnita con coeficientes enteros.
+              <span style="font-family: var(--mono); font-size: 13px">MA07 OA 06</span> &middot; despejar la incógnita con coeficientes enteros.
               Ayer quedaste a un paso: fallaste al cambiar el signo al pasar un término.
             </div>
           </div>

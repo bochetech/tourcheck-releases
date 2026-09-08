@@ -12,6 +12,7 @@
     :root {
       --fondo: oklch(0.19 0.012 250);
       --sup: oklch(0.235 0.014 250);
+      --sup-baja: oklch(0.205 0.012 250);
       --sup-alta: oklch(0.285 0.016 250);
       --tinta: oklch(0.94 0.006 250);
       --tinta-suave: oklch(0.68 0.012 250);
@@ -57,9 +58,7 @@
       <div style="display: flex; flex-direction: column; gap: 20px; flex-grow: 1">
 
         <div style="display: flex; gap: 14px; max-width: 620px">
-          <div style="width: 30px; height: 30px; border-radius: 9px; background: oklch(0.72 0.14 200 / 0.16); flex-shrink: 0; display: flex; align-items: center; justify-content: center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12h16M12 4v16" stroke="var(--teal)" stroke-width="2.4" stroke-linecap="round"/></svg>
-          </div>
+          <div style="flex-shrink: 0"><svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-label="Copi"><rect width="30" height="30" rx="9" fill="oklch(0.72 0.14 200 / 0.16)"/><path d="M15 21c0-4.4 3.2-7.6 7.6-7.6 0 4.4-3.2 7.6-7.6 7.6z" fill="var(--teal)"/><path d="M15 21c0-3.9-2.8-6.7-6.6-6.5.5 3.9 2.7 6.5 6.6 6.5z" fill="var(--teal)" opacity="0.62"/><path d="M15 21v3" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round"/></svg></div>
           <div style="background: var(--sup); border: 1px solid var(--borde); border-radius: 12px 12px 12px 3px; padding: 16px 20px; font-size: 16px; line-height: 1.55">
             Pasaste el 5 al otro lado y te quedó <span style="font-family: var(--mono); background: var(--sup-alta); padding: 1px 6px; border-radius: 4px">3x = 25</span>. ¿Qué operación estás deshaciendo al mover ese 5?
           </div>
@@ -72,9 +71,7 @@
         </div>
 
         <div style="display: flex; gap: 14px; max-width: 620px">
-          <div style="width: 30px; height: 30px; border-radius: 9px; background: oklch(0.72 0.14 200 / 0.16); flex-shrink: 0; display: flex; align-items: center; justify-content: center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12h16M12 4v16" stroke="var(--teal)" stroke-width="2.4" stroke-linecap="round"/></svg>
-          </div>
+          <div style="flex-shrink: 0"><svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-label="Copi"><rect width="30" height="30" rx="9" fill="oklch(0.72 0.14 200 / 0.16)"/><path d="M15 21c0-4.4 3.2-7.6 7.6-7.6 0 4.4-3.2 7.6-7.6 7.6z" fill="var(--teal)"/><path d="M15 21c0-3.9-2.8-6.7-6.6-6.5.5 3.9 2.7 6.5 6.6 6.5z" fill="var(--teal)" opacity="0.62"/><path d="M15 21v3" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round"/></svg></div>
           <div style="background: var(--sup); border: 1px solid var(--borde); border-radius: 12px 12px 12px 3px; padding: 16px 20px; font-size: 16px; line-height: 1.55">
             Exacto, eso es lo que faltaba. Arréglalo en tu cuaderno y escribe aquí a cuánto llegas.
           </div>
@@ -106,7 +103,18 @@
 
     </div>
 
-    <div style="width: 340px; border-left: 1px solid var(--borde); padding: 30px 32px; display: flex; flex-direction: column; gap: 26px; background: oklch(0.205 0.012 250)">
+    <div style="width: 340px; border-left: 1px solid var(--borde); padding: 30px 32px; display: flex; flex-direction: column; gap: 26px; background: var(--sup-baja)">
+
+      <div style="display: flex; align-items: center; gap: 12px; padding-bottom: 22px; border-bottom: 1px solid var(--borde)">
+        <div style="flex-shrink: 0"><svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-label="Copi"><rect width="30" height="30" rx="9" fill="oklch(0.72 0.14 200 / 0.16)"/><path d="M15 21c0-4.4 3.2-7.6 7.6-7.6 0 4.4-3.2 7.6-7.6 7.6z" fill="var(--teal)"/><path d="M15 21c0-3.9-2.8-6.7-6.6-6.5.5 3.9 2.7 6.5 6.6 6.5z" fill="var(--teal)" opacity="0.62"/><path d="M15 21v3" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+        <div style="flex-grow: 1">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span style="font-family: var(--display); font-size: 15px; font-weight: 600">Copi</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: var(--verde)"></span><span style="font-size: 13px; color: var(--verde)">contigo</span></span>
+          </div>
+          <div style="font-size: 13px; color: var(--tinta-suave); margin-top: 4px">18 min juntos &middot; te sigue leyendo</div>
+        </div>
+      </div>
 
       <div>
         <div style="font-family: var(--display); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tinta-suave)">Andamiaje</div>

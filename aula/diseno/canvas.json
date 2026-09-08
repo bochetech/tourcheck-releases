@@ -2,25 +2,33 @@
   "artboards": [
     { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1024, "h": 768, "title": "Explorador · Inicio" },
     { "file": "ExploradorSesion.dc.html", "x": 1104, "y": 0, "w": 1024, "h": 768, "title": "Explorador · Sesión con voz" },
-    { "file": "Diagnostico.dc.html", "x": 2208, "y": 0, "w": 1024, "h": 768, "title": "Diagnóstico adaptativo" },
+    { "file": "RepasoJuego.dc.html", "x": 2208, "y": 0, "w": 1024, "h": 768, "title": "Repaso · El taller de Copi (funciona)", "is_interactive": true },
+    { "file": "Diagnostico.dc.html", "x": 3312, "y": 0, "w": 1024, "h": 768, "title": "Diagnóstico adaptativo" },
     { "file": "TallerInicio.dc.html", "x": 0, "y": 888, "w": 1440, "h": 900, "title": "Taller · Inicio" },
     { "file": "TallerSesion.dc.html", "x": 1520, "y": 888, "w": 1440, "h": 900, "title": "Taller · Sesión socrática" },
     { "file": "PanelPadres.dc.html", "x": 3040, "y": 888, "w": 1440, "h": 900, "title": "Panel de padres" }
   ],
   "annotations": [
     {
-      "id": "nota-explorador",
+      "id": "nota-copi",
       "x": 0,
-      "y": -196,
-      "w": 620,
-      "text": "MODO EXPLORADOR · 7 años, tablet\n\nLa voz es principalmente salida: el tutor habla, el niño toca, arrastra o escribe. Con ~40% de error de reconocimiento en voces de 7 años, todo flujo que dependa de transcribir su habla libre está roto de origen."
+      "y": -230,
+      "w": 640,
+      "text": "COPI VIVE EN UN CARRIL FIJO\n\nUn compañero que solo aparece cuando habla es una convención de chat. Copi ocupa el mismo sitio en las tres pantallas del Explorador y tiene estados visibles —te acompaña, te escucha, está mirando— para que se note que sigue ahí aunque calle.\n\nEl nombre es un marcador de posición: debería ponérselo el niño. Nombrarlo es lo que crea el vínculo."
     },
     {
       "id": "nota-confirmacion",
       "x": 1104,
-      "y": -196,
-      "w": 620,
-      "text": "LA TARJETA «ESCUCHÉ VEINTISIETE»\n\nEs la pieza que hace utilizable un 40% de WER: se espera un número, así que la transcripción se compara por distancia fonética contra el conjunto esperado y se confirma antes de evaluar. Un error de audio se vuelve un microintercambio simpático, no una injusticia. El teclado de al lado es la salida sin voz, siempre disponible."
+      "y": -230,
+      "w": 640,
+      "text": "«COPI ESCUCHÓ VEINTISIETE»\n\nEs la pieza que hace utilizable un reconocimiento con ~40% de error en voces de 7 años: se espera un número, así que la transcripción se compara por distancia fonética contra el conjunto esperado y se confirma antes de evaluar. Un error de audio se vuelve un microintercambio, no una injusticia. El teclado al lado es la salida sin voz, siempre disponible."
+    },
+    {
+      "id": "nota-juego",
+      "x": 2208,
+      "y": -230,
+      "w": 1128,
+      "text": "ESTA PANTALLA FUNCIONA — PRUÉBALA\n\nToca una barra naranja: se abre en diez unidades sueltas. Eso ES el canje de la resta llevando, hecho manipulable en vez de explicado.\n\nSin puntos, sin monedas, sin vidas. Una capa de premios convierte el aprendizaje en persecución de puntaje y la motivación se va cuando el premio se acaba. Lo que hace que se sienta juego es la manipulación directa, la reacción inmediata y que Copi juegue CONTIGO contra el problema, en vez de tomarte la prueba.\n\nEs también el modo en que se rinde el repaso espaciado: lo que a las 8 de la mañana sería un cuestionario, aquí es el taller."
     },
     {
       "id": "nota-taller",
@@ -30,11 +38,11 @@
       "text": "MODO TALLER · 13 años, laptop\n\nMismos tokens, otra piel: oscuro, denso, progreso como datos. Nada infantilizado — a los 13 eso ofende y expulsa. Sin mascota, sin confeti, sin porcentajes de felicitación."
     },
     {
-      "id": "nota-socratico",
+      "id": "nota-presencia",
       "x": 1520,
       "y": 1830,
       "w": 660,
-      "text": "EL TUTOR NO DA LA RESPUESTA\n\nEl andamiaje escalonado es visible para el alumno: dos pistas y, al tercer bloqueo, un ejercicio análogo más simple — nunca el mismo problema resuelto. El panel derecho recuerda que los resultados los calcula SymPy, no el modelo. Abajo, la válvula de curiosidad: lo que preguntó fuera del plan queda anotado sin desviar la sesión."
+      "text": "EL MISMO COPI, SIN CARA\n\nA los 13 un personaje dibujado expulsa, pero la compañía sigue haciendo falta. Copi pasa a ser una marca sobria con estado permanente («contigo», «18 min juntos») y lenguaje en primera persona del plural que recuerda lo de ayer. El mismo compañero crece con el niño; lo que cambia es cómo se representa.\n\nY sigue sin dar la respuesta: dos pistas y, al tercer bloqueo, un ejercicio análogo más simple."
     },
     {
       "id": "nota-padres",
