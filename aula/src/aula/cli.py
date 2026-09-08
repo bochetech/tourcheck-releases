@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import re
 import sys
 import time
 from pathlib import Path
@@ -38,8 +39,9 @@ from aula.llm.cliente import ErrorLLM, para_rol
 from aula.curriculum.io import cargar, guardar
 from aula.importador import catalogo as cat
 from aula.importador import descarga as desc
-from aula.importador.codigos import IndiceCodigos
-from aula.importador.pipeline import importar, leer_de_cache
+from aula.importador.codigos import PATRON_CODIGO, IndiceCodigos
+from aula.importador.contexto import detectar
+from aula.importador.pipeline import contexto_de, importar, leer_de_cache
 from aula.importador.texto import SinCapaDeTexto
 from aula.importador.trozos import trocear
 from aula.curriculum.validator import Severidad, validar
@@ -611,6 +613,87 @@ def curriculum_adjuntar(
     console.print()
 
 
+def _del_catalogo(pais: str, doc_id: str):
+    try:
+        return cat.por_id(pais, doc_id)
+    except KeyError:
+        return None
+
+
+@curriculum_app.command("sondear")
+def curriculum_sondear(
+    doc_id: str = typer.Option(None, "--id", help="Documento de la caché."),
+    cache: Path = typer.Option(desc.CACHE_POR_DEFECTO, "--cache"),
+    paginas: str = typer.Option(None, "--paginas", help='Rango, p. ej. "20-22".'),
+    buscar: str = typer.Option("OA", "--buscar", help="Qué rodear con su contexto."),
+    contextos: int = typer.Option(10, "--contextos", help="Cuántos fragmentos mostrar."),
+    ancho: int = typer.Option(70, "--ancho", help="Caracteres a cada lado."),
+) -> None:
+    """Enseña el texto crudo de un documento. Para cuando el patrón no encuentra nada.
+
+    Un "cero códigos" no dice si el documento no los trae, si el PDF salió mal, o
+    si están escritos de otra manera. Esto lo dice, y sin gastar una sola llamada
+    al modelo. Fue lo que reveló que un Programa de Estudio escribe `OA 1` y no
+    `MA05 OA 01`.
+    """
+    manifiesto = desc.cargar_manifiesto(cache)
+    entradas = [
+        d for d in manifiesto.descargas.values() if doc_id is None or d.id == doc_id
+    ]
+    if not entradas:
+        err_console.print(f"[yellow]No hay nada en {cache}.[/yellow]")
+        raise typer.Exit(code=2)
+
+    for entrada in entradas:
+        try:
+            doc = leer_de_cache(entrada, cache)
+        except (SinCapaDeTexto, ImportError) as exc:
+            err_console.print(f"[red]{exc}[/red]")
+            raise typer.Exit(code=2) from exc
+
+        console.print()
+        console.print(f"  [bold]{entrada.titulo or entrada.id}[/bold] "
+                      f"[dim]{len(doc.paginas)} páginas[/dim]")
+        console.print(f"  [dim]{detectar(doc.texto)}[/dim]")
+
+        if paginas:
+            for pagina in _rango(paginas, len(doc.paginas)):
+                console.print()
+                console.print(f"  [bold dim]── página {pagina} ──[/bold dim]")
+                console.print(doc.paginas[pagina - 1].texto[:2000] or "[dim](vacía)[/dim]")
+            continue
+
+        console.print()
+        console.print(f"  [bold dim]── el patrón actual ──[/bold dim]")
+        halladas = [m.group(0) for m in PATRON_CODIGO.finditer(doc.texto)]
+        console.print(f"  {len(halladas)} coincidencias"
+                      + (f": [dim]{', '.join(halladas[:8])}[/dim]" if halladas else ""))
+
+        console.print()
+        console.print(f"  [bold dim]── '{buscar}' en su contexto ──[/bold dim]")
+        vistos = 0
+        for m in re.finditer(re.escape(buscar), doc.texto):
+            if vistos >= contextos:
+                break
+            desde, hasta = max(m.start() - ancho, 0), m.end() + ancho
+            fragmento = " ".join(doc.texto[desde:hasta].split())
+            console.print(f"  [dim]p{doc.pagina_en(m.start()):>3}[/dim]  …{fragmento}…")
+            vistos += 1
+        if not vistos:
+            console.print(f"  [yellow]'{buscar}' no aparece en el documento.[/yellow]")
+        console.print()
+
+
+def _rango(texto: str, tope: int) -> list[int]:
+    partes = texto.split("-")
+    try:
+        desde = int(partes[0])
+        hasta = int(partes[-1])
+    except ValueError as exc:
+        raise typer.BadParameter(f"'{texto}' no es un rango de páginas") from exc
+    return [p for p in range(desde, hasta + 1) if 1 <= p <= tope]
+
+
 def _plural(n: int, palabra: str) -> str:
     return f"{n} {palabra}" + ("s" if n != 1 else "")
 
@@ -618,6 +701,9 @@ def _plural(n: int, palabra: str) -> str:
 @curriculum_app.command("inspeccionar")
 def curriculum_inspeccionar(
     doc_id: str = typer.Option(None, "--id", help="Solo este documento."),
+    pais: str = typer.Option("CL", "--pais"),
+    asignatura: str = typer.Option(None, "--asignatura", help='Sigla, p. ej. "MA".'),
+    nivel: str = typer.Option(None, "--nivel", help='Nivel, p. ej. "05" o "1M".'),
     cache: Path = typer.Option(desc.CACHE_POR_DEFECTO, "--cache"),
     listar: int = typer.Option(10, "--listar", help="Cuántos códigos mostrar."),
 ) -> None:
@@ -654,9 +740,13 @@ def curriculum_inspeccionar(
             err_console.print(f"[red]{exc}[/red]")
             raise typer.Exit(code=2) from exc
 
-        indice = IndiceCodigos(doc)
+        contexto = contexto_de(
+            doc, _del_catalogo(pais, entrada.id), asignatura=asignatura, nivel=nivel
+        )
+        indice = IndiceCodigos(doc, contexto)
         trozos = trocear(doc, indice)
         console.print(f"  [bold]{entrada.titulo or entrada.id}[/bold]")
+        console.print(f"    [dim]{contexto}[/dim]")
         console.print(
             f"    {_plural(len(doc.paginas), 'página')} · "
             f"{len(doc.texto):,} caracteres · "
@@ -664,10 +754,18 @@ def curriculum_inspeccionar(
             f"{'s' if len(indice) != 1 else ''} · "
             f"{_plural(len(trozos), 'trozo')}"
         )
+        if indice.escuetos_sin_contexto:
+            console.print(
+                f"    [yellow]{indice.escuetos_sin_contexto} códigos escritos en corto "
+                "(`OA 1`) que no se pueden completar sin saber asignatura y nivel.[/yellow]"
+            )
+            console.print(
+                "    [dim]Pásalos: --asignatura MA --nivel 05[/dim]"
+            )
         if not len(indice):
             console.print(
-                "    [yellow]Ningún código de objetivo. O el documento no los trae, "
-                "o el patrón no cuadra con este país.[/yellow]"
+                "    [yellow]Ningún código de objetivo.[/yellow] "
+                "[dim]Mira qué trae de verdad con `aula curriculum sondear`.[/dim]"
             )
         else:
             muestra = indice.codigos[:listar]

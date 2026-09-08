@@ -231,6 +231,27 @@ aula curriculum adjuntar ~/Downloads/articles-18977_programa.pdf \
 objetivos con un esquema JSON como decodificación restringida. Nada depende de la
 estructura HTML de `curriculumnacional.cl`, que cambia sin avisar.
 
+### Los códigos vienen de dos maneras, y lo aprendimos a golpes
+
+Un Programa de Estudio real de 206 páginas devolvió **cero códigos**. No era un
+escaneo: salieron 305 mil caracteres de texto. El patrón estaba mal.
+
+Dentro de un programa los objetivos no se escriben `MA05 OA 01` sino `OA 1` a
+secas, y es razonable: el documento entero es de una asignatura y un nivel, así
+que repetir el prefijo doscientas veces sería ruido. **El prefijo no está
+escrito, está en la portada.**
+
+    MA05 OA 01     forma completa: temarios, bases, listados web
+    OA 1           forma escueta: dentro de un programa de estudio
+    MA1M OA 01     enseñanza media, donde el nivel es "1M".."4M"
+
+La forma escueta solo se indexa si se sabe de qué asignatura y nivel es el
+documento —del catálogo, de la línea de comandos, o deducido de la portada— y el
+importador dice de cuál de los tres salió. Sin eso no se puede canonicalizar, y
+meter `OA 1` suelto en un currículo que mezcla niveles sería peor que no meter
+nada. De ahí `aula curriculum sondear`: cuando el patrón no encuentra nada, hay
+que poder ver el texto de verdad en vez de adivinar.
+
 ### La procedencia se calcula, no se pregunta
 
 Los códigos de objetivo se buscan con una expresión regular sobre el documento

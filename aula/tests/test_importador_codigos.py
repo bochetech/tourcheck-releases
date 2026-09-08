@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from aula.curriculum.model import TipoObjetivo
 from aula.importador.codigos import IndiceCodigos, indexar_codigos, normalizar
+from aula.importador.contexto import detectar
 from aula.importador.texto import desde_paginas
 
 
@@ -13,7 +14,7 @@ def doc(*paginas: str):
 
 def test_reconoce_las_dos_formas_reales_del_curriculo_chileno():
     """`MA05 OA 01` y `MA05 OAA B`, verificadas contra documentos del MINEDUC."""
-    encontrados = indexar_codigos(doc("MA05 OA 01 contar. MA05 OAA B respetar."))
+    encontrados = indexar_codigos(doc("MA05 OA 01 contar. MA05 OAA B respetar.")).apariciones
     assert [c.codigo for c in encontrados] == ["MA05 OA 01", "MA05 OAA B"]
     assert encontrados[0].tipo is TipoObjetivo.CONOCIMIENTO
     assert encontrados[1].tipo is TipoObjetivo.ACTITUD
@@ -33,7 +34,8 @@ def test_lo_que_no_es_un_codigo_no_lo_es():
 
 def test_el_salto_de_linea_del_pdf_no_rompe_el_codigo():
     """Al pasar un PDF a texto, el espacio del código puede volverse un salto."""
-    assert [c.codigo for c in indexar_codigos(doc("MA05\nOA\n01 contar"))] == ["MA05 OA 01"]
+    encontrados = indexar_codigos(doc("MA05\nOA\n01 contar")).apariciones
+    assert [c.codigo for c in encontrados] == ["MA05 OA 01"]
 
 
 def test_la_procedencia_sale_del_documento_no_del_modelo():
@@ -61,3 +63,49 @@ def test_conoce_los_niveles_y_asignaturas_que_contiene():
     indice = IndiceCodigos(doc("MA05 OA 01 x", "LE02 OA 03 y"))
     assert indice.niveles() == {"05", "02"}
     assert indice.asignaturas() == {"MA", "LE"}
+
+
+# ---------------------------------------------------------------------------
+# La forma escueta: lo que enseñó un Programa de Estudio real
+# ---------------------------------------------------------------------------
+
+
+def test_un_programa_de_estudio_escribe_los_objetivos_sin_prefijo():
+    """206 páginas y cero códigos: dentro de un programa se escribe `OA 1`."""
+    d = doc("Programa de Estudio Matematica Quinto Basico", "OA 1 Representar numeros.")
+    assert len(IndiceCodigos(d, detectar(d.texto))) == 1
+    assert IndiceCodigos(d, detectar(d.texto)).codigos == ["MA05 OA 01"]
+
+
+def test_sin_saber_el_nivel_no_se_inventa_uno():
+    """Meter `OA 1` suelto en un currículo que mezcla niveles es peor que nada."""
+    d = doc("Un documento sin portada.", "OA 1 Representar numeros.")
+    indice = IndiceCodigos(d)
+    assert indice.codigos == []
+    assert indice.escuetos_sin_contexto == 1
+
+
+def test_las_dos_formas_conviven_en_el_mismo_documento():
+    d = doc("Programa de Matematica Quinto Basico", "OA 1 contar. MA05 OA 03 dividir.")
+    indice = IndiceCodigos(d, detectar(d.texto))
+    assert indice.codigos == ["MA05 OA 01", "MA05 OA 03"]
+    assert [a.escueto for a in indice.apariciones] == [True, False]
+
+
+def test_los_oa_van_por_numero_y_los_oaa_por_letra():
+    """Exigirlo quita casi todos los falsos positivos de la forma escueta."""
+    d = doc("Programa de Matematica Quinto Basico", "OA uno. OAA 3. OA 4. OAA b.")
+    assert IndiceCodigos(d, detectar(d.texto)).codigos == ["MA05 OA 04", "MA05 OAA B"]
+
+
+def test_la_ensenanza_media_usa_niveles_1m_a_4m():
+    """Los propios códigos del MINEDUC son `MA1M OA 01`."""
+    d = doc("MA1M OA 01 Resolver ecuaciones.")
+    assert IndiceCodigos(d).codigos == ["MA1M OA 01"]
+
+
+def test_el_prefijo_declarado_manda_sobre_el_deducido():
+    """El catálogo es la afirmación de una persona; la portada, una conjetura."""
+    d = doc("Programa de Matematica Quinto Basico", "OA 1 contar.")
+    indice = IndiceCodigos(d, detectar(d.texto, nivel="02"))
+    assert indice.codigos == ["MA02 OA 01"]

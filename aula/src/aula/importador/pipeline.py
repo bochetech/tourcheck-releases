@@ -18,6 +18,7 @@ from aula.config import Config, Rol
 from aula.curriculum.model import Curriculum, FuenteCurriculo
 from aula.importador.catalogo import Documento, catalogo
 from aula.importador.codigos import IndiceCodigos
+from aula.importador.contexto import ContextoDocumento, detectar
 from aula.importador.consolidar import Consolidacion, construir_curriculum, consolidar
 from aula.importador.descarga import CACHE_POR_DEFECTO, Descarga, cargar_manifiesto
 from aula.importador.extraccion import (
@@ -82,15 +83,37 @@ def leer_de_cache(
     )
 
 
+def contexto_de(
+    doc: DocumentoTexto,
+    documento: Documento | None = None,
+    *,
+    asignatura: str | None = None,
+    nivel: str | None = None,
+) -> ContextoDocumento:
+    """Resuelve asignatura y nivel del documento, por orden de fiabilidad.
+
+    Primero lo que dijo una persona (la línea de comandos), luego lo que declara
+    el catálogo, y solo si no hay nada, lo que se deduce de la portada. Hace falta
+    para completar los códigos escuetos de un programa de estudio, donde el
+    prefijo no está escrito en ninguna línea.
+    """
+    return detectar(
+        doc.texto,
+        asignatura=asignatura or (documento.asignatura if documento else None),
+        nivel=nivel or (documento.nivel if documento else None),
+    )
+
+
 def extraer_documento(
     descarga: Descarga,
     cliente,
     cache: str | Path = CACHE_POR_DEFECTO,
     al_avanzar=None,
+    contexto: ContextoDocumento | None = None,
 ) -> tuple[DocumentoTexto, IndiceCodigos, ResultadoExtraccion]:
     """Un documento de la caché → objetivos crudos, con procedencia."""
     doc = leer_de_cache(descarga, cache)
-    indice = IndiceCodigos(doc)
+    indice = IndiceCodigos(doc, contexto if contexto is not None else contexto_de(doc))
     trozos = trocear(doc, indice)
     resultado = extraer(doc, trozos, cliente, indice, al_avanzar=al_avanzar)
     return doc, indice, resultado
@@ -148,12 +171,24 @@ def importar(
     for descarga in elegidas:
         doc_catalogo: Documento | None = docs_catalogo.get(descarga.id)
         try:
+            contexto = contexto_de(
+                leer_de_cache(descarga, cache),
+                doc_catalogo,
+                asignatura=asignatura,
+                nivel=nivel,
+            )
             doc, indice, resultado = extraer_documento(
-                descarga, cliente_extraccion, cache, al_avanzar
+                descarga, cliente_extraccion, cache, al_avanzar, contexto
             )
         except SinCapaDeTexto as exc:
             informe.errores.append(str(exc))
             continue
+
+        if indice.escuetos_sin_contexto:
+            informe.errores.append(
+                f"{descarga.id}: {indice.escuetos_sin_contexto} códigos escuetos "
+                "sin poder completar. Pasa --asignatura y --nivel."
+            )
 
         informe.documentos.append(descarga.titulo or descarga.id)
         informe.objetivos_extraidos += len(resultado.objetivos)
@@ -168,8 +203,8 @@ def importar(
         licencia = licencia or descarga.licencia
         if doc_catalogo is not None and doc_catalogo.clase == "temario":
             es_temario = True
-        if nivel_documento is None and doc_catalogo is not None:
-            nivel_documento = doc_catalogo.nivel
+        if nivel_documento is None:
+            nivel_documento = contexto.nivel
 
     informe.codigos_en_documentos = len(codigos_en_fuente)
 
