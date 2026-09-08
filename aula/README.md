@@ -23,7 +23,8 @@ El diseño completo, con la investigación que lo sostiene, está en
 | **Bucle de auto-reparación** | ✅ funciona |
 | **Cliente de modelos (OpenAI-compatible)** | ✅ funciona, local y nube |
 | **Familia, estudiantes y asignación de planes** | ✅ funciona |
-| Importador desde `curriculumnacional.cl` | ⬜ siguiente |
+| **Importador de currículo (`fetch` / `extract` / `import`)** | ✅ funciona |
+| Primera corrida contra documentos reales del MINEDUC | ⬜ siguiente |
 | Motor socrático, anclaje, voz | ⬜ fases 2-5 |
 
 ## Por qué el validador va primero
@@ -176,13 +177,21 @@ es el contenedor, no el Mac. Por eso las URL locales llevan
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
+```
 
-pytest                                                   # 122 tests
-aula curriculum validate ejemplos/cl-2basico-matematica.yaml   # pasa
-aula curriculum validate ejemplos/cl-2basico-roto.yaml         # 4 bloqueantes
-aula curriculum validate ejemplos/cl-2basico-roto.yaml --json  # para el bucle
+197 tests, ninguno toca la red:
 
-aula config show --perfil plan-premium                   # modelos por rol
+```bash
+pytest
+```
+
+Validar un plan:
+
+```bash
+aula curriculum validate ejemplos/cl-2basico-matematica.yaml
+aula curriculum validate ejemplos/cl-2basico-roto.yaml
+aula curriculum validate ejemplos/cl-2basico-roto.yaml --json
+aula config show --perfil plan-premium
 ```
 
 Base de datos local (Postgres + pgvector), cuando haga falta:
@@ -190,6 +199,72 @@ Base de datos local (Postgres + pgvector), cuando haga falta:
 ```bash
 docker compose up -d
 ```
+
+## El importador: descargar y entender son dos programas
+
+```
+  fetch  ─────────────►  datos/fuentes/  ─────────────►  extract
+  (red, una vez)         caché + manifiesto              (sin red, n veces)
+```
+
+No es una separación estética. Descargar necesita salida a internet y permiso;
+entender necesita iterar el prompt veinte veces. Juntarlos obliga a volver a bajar
+el PDF cada vez que se ajusta una instrucción. Separados, **la caché es el
+fixture**: se comparte la carpeta y la extracción se desarrolla offline contra
+documentos reales.
+
+```bash
+aula curriculum fetch --pais CL --nivel 02        # única etapa que usa red
+aula curriculum inspeccionar                      # qué hay dentro, sin modelo
+aula curriculum extract --pais CL --nivel 02      # sin red
+aula curriculum import --pais CL --nivel 02       # todo seguido
+```
+
+¿Ya tienes el PDF bajado a mano? Entra por el mismo camino:
+
+```bash
+aula curriculum adjuntar ~/Downloads/articles-18977_programa.pdf \
+  --id cl-programa-matematica --titulo "Programa de Estudio — Matemática"
+```
+
+**No hay selectores.** El documento se lleva a texto plano y el modelo extrae los
+objetivos con un esquema JSON como decodificación restringida. Nada depende de la
+estructura HTML de `curriculumnacional.cl`, que cambia sin avisar.
+
+### La procedencia se calcula, no se pregunta
+
+Los códigos de objetivo se buscan con una expresión regular sobre el documento
+completo **antes de la primera llamada al modelo**. De ahí salen la página, el
+documento y la URL de cada objetivo. Un modelo puede alucinar un código; no puede
+alucinar en qué página del PDF estaba.
+
+De ahí salen las dos comprobaciones que sostienen la confianza:
+
+- Un código que el modelo devuelve y **no está en el documento** se descarta,
+  aunque tenga forma perfecta. Es el caso peligroso: el malformado se cae solo, el
+  bien formado e inventado se cuela.
+- La **cobertura** (cuántos de los códigos del documento acabaron en el currículo)
+  tiene el denominador calculado por la expresión regular. Es la única métrica del
+  importador que el modelo no puede inflar.
+
+La confianza de cada objetivo sale de señales computables —aparece en la fuente,
+dos trozos independientes coinciden, el largo es plausible, el nivel cuadra— nunca
+de la opinión del modelo sobre sí mismo. Es lo que decide qué llega a la cola de
+revisión del padre.
+
+### Trocear sin partir objetivos
+
+Los cortes caen solo donde empieza un código. Un objetivo queda entero en un trozo
+o repetido en dos, nunca partido por la mitad. El solapamiento produce duplicados
+a propósito: dos trozos que coinciden en el texto son **señal de confianza**.
+
+### Y lo que ningún ministerio publica
+
+Tres pases globales cierran lo que no se puede sacar mirando un trozo:
+**prerrequisitos** (las Bases dan una lista, no un grafo; sin grafo no hay
+secuencia), **resúmenes** (el índice RAG, escrito una vez y leído en cada turno
+durante años) e **ítems** de evaluación (regla 4: lo que no se puede evaluar no se
+puede dar por dominado).
 
 ## Decisiones que conviene conocer antes de tocar el código
 

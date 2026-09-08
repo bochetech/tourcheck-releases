@@ -1,7 +1,12 @@
 """CLI de Aula.
 
-Por ahora expone el validador, que es la pieza de la que depende todo lo demás:
-es el bucle de retroalimentación con el que el importador se corrige solo.
+Expone las cuatro cosas que hoy existen: el importador de currículo, el
+validador, el bucle de auto-reparación y la configuración de modelos y familia.
+
+El importador está partido en `fetch` (necesita red, se corre una vez) y
+`extract` (sin red, se corre las veces que haga falta) porque son trabajos
+distintos: descargar necesita permiso de salida, y entender necesita iterar. La
+caché de `datos/fuentes/` es lo que los une, y es portátil a propósito.
 """
 
 from __future__ import annotations
@@ -31,6 +36,12 @@ from aula.curriculum.proponente import ProponenteConModelo
 from aula.curriculum.reparador import reparar
 from aula.llm.cliente import ErrorLLM, para_rol
 from aula.curriculum.io import cargar, guardar
+from aula.importador import catalogo as cat
+from aula.importador import descarga as desc
+from aula.importador.codigos import IndiceCodigos
+from aula.importador.pipeline import importar, leer_de_cache
+from aula.importador.texto import SinCapaDeTexto
+from aula.importador.trozos import trocear
 from aula.curriculum.validator import Severidad, validar
 
 app = typer.Typer(help="Aula — tutoría con IA anclada a un currículo validado.")
@@ -498,6 +509,347 @@ def curriculum_reparar(
     guardar(reparado, destino)
     console.print()
     console.print(f"  [green]escrito[/green] [dim]{destino}[/dim]")
+    console.print()
+    raise typer.Exit(code=0 if reparacion.ok else 1)
+
+
+# ---------------------------------------------------------------------------
+# Importador
+# ---------------------------------------------------------------------------
+
+
+@curriculum_app.command("fetch")
+def curriculum_fetch(
+    pais: str = typer.Option("CL", "--pais", help="País del catálogo."),
+    nivel: str = typer.Option(None, "--nivel", help='Nivel, p. ej. "02".'),
+    asignatura: str = typer.Option(None, "--asignatura", help='Sigla, p. ej. "MA".'),
+    ids: list[str] = typer.Option(None, "--id", help="Documento concreto del catálogo."),
+    cache: Path = typer.Option(desc.CACHE_POR_DEFECTO, "--cache", help="Dónde guardar."),
+    forzar: bool = typer.Option(False, "--forzar", help="Volver a descargar."),
+    todos: bool = typer.Option(False, "--todos", help="Incluir los inactivos."),
+) -> None:
+    """Descarga documentos oficiales a la caché: la única etapa que usa red."""
+    try:
+        docs = cat.documentos(
+            pais,
+            nivel=nivel,
+            asignatura=asignatura,
+            clase=None,
+            ids=list(ids) if ids else None,
+            incluir_inactivos=todos,
+        )
+    except KeyError as exc:
+        err_console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=2) from exc
+
+    if not docs:
+        err_console.print("[yellow]Ningún documento del catálogo cuadra con el filtro.[/yellow]")
+        raise typer.Exit(code=2)
+
+    console.print()
+    console.print(f"  Trayendo {len(docs)} documento(s) a [dim]{cache}[/dim]")
+    console.print()
+
+    traidas, fallos = desc.traer_todos(docs, cache, forzar=forzar)
+    for d in traidas:
+        console.print(f"  [green]ok[/green]  {d.id}  [dim]{d.bytes:,} bytes[/dim]")
+    for doc_id, motivo in fallos:
+        console.print(f"  [red]no[/red]  {doc_id}  [dim]{motivo}[/dim]")
+
+    console.print()
+    console.print(
+        f"  {len(traidas)} en caché, {len(fallos)} sin traer. "
+        "Lo demás corre sin red."
+    )
+    console.print()
+    raise typer.Exit(code=0 if traidas else 1)
+
+
+@curriculum_app.command("adjuntar")
+def curriculum_adjuntar(
+    archivo: Path = typer.Argument(..., help="PDF o HTML que ya tienes en el disco."),
+    doc_id: str = typer.Option(..., "--id", help="Identificador del documento."),
+    pais: str = typer.Option("CL", "--pais"),
+    titulo: str = typer.Option(None, "--titulo", help="Cómo se llamará en `fuente.doc`."),
+    nivel: str = typer.Option(None, "--nivel"),
+    asignatura: str = typer.Option(None, "--asignatura"),
+    clase: str = typer.Option("programa", "--clase", help="temario|programa|bases|plan_horas|oa"),
+    cache: Path = typer.Option(desc.CACHE_POR_DEFECTO, "--cache"),
+) -> None:
+    """Mete en la caché un documento que ya tienes bajado.
+
+    Entra por el mismo camino que uno descargado: mismo manifiesto, mismo sha256,
+    misma extracción. Es la vía para los documentos sin URL estable.
+    """
+    try:
+        documento = cat.por_id(pais, doc_id)
+        if titulo:
+            documento = documento.model_copy(update={"titulo": titulo})
+    except KeyError:
+        # Un id fuera del catálogo es legítimo: alguien tiene un PDF que aún no
+        # está declarado. Se le arma una ficha con la licencia conservadora.
+        documento = cat.Documento(
+            id=doc_id,
+            tipo="pdf" if archivo.suffix.lower() == ".pdf" else "html",
+            clase=clase,  # type: ignore[arg-type]
+            titulo=titulo or doc_id,
+            nivel=nivel,
+            asignatura=asignatura,
+        )
+
+    try:
+        descarga = desc.adjuntar(documento, archivo, cache)
+    except desc.ErrorDescarga as exc:
+        err_console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=2) from exc
+
+    console.print()
+    console.print(f"  [green]adjuntado[/green] {descarga.id}  [dim]{descarga.bytes:,} bytes[/dim]")
+    console.print(f"  [dim]{descarga.ruta(cache)} · sha256 {descarga.sha256[:12]}…[/dim]")
+    console.print()
+    console.print("  Ahora: [bold]aula curriculum inspeccionar[/bold] para ver qué hay dentro.")
+    console.print()
+
+
+def _plural(n: int, palabra: str) -> str:
+    return f"{n} {palabra}" + ("s" if n != 1 else "")
+
+
+@curriculum_app.command("inspeccionar")
+def curriculum_inspeccionar(
+    doc_id: str = typer.Option(None, "--id", help="Solo este documento."),
+    cache: Path = typer.Option(desc.CACHE_POR_DEFECTO, "--cache"),
+    listar: int = typer.Option(10, "--listar", help="Cuántos códigos mostrar."),
+) -> None:
+    """Mira qué hay en un documento de la caché, sin modelo y sin red.
+
+    Es el primer diagnóstico y el más barato: si aquí no aparecen códigos, no hay
+    nada que extraer y el problema está en el documento, no en el modelo. Correr
+    esto antes de gastar media hora de GPU ahorra media hora de GPU.
+    """
+    manifiesto = desc.cargar_manifiesto(cache)
+    entradas = [
+        d for d in manifiesto.descargas.values() if doc_id is None or d.id == doc_id
+    ]
+    if not entradas:
+        err_console.print(
+            f"[yellow]No hay nada en {cache}.[/yellow] Corre `aula curriculum fetch` "
+            "o `aula curriculum adjuntar`."
+        )
+        raise typer.Exit(code=2)
+
+    problemas = desc.verificar(cache)
+    if problemas:
+        for p in problemas:
+            err_console.print(f"  [red]caché dañada[/red] {p}")
+
+    console.print()
+    for entrada in entradas:
+        try:
+            doc = leer_de_cache(entrada, cache)
+        except SinCapaDeTexto as exc:
+            console.print(f"  [red]{entrada.id}[/red]  {exc}")
+            continue
+        except ImportError as exc:
+            err_console.print(f"[red]{exc}[/red]")
+            raise typer.Exit(code=2) from exc
+
+        indice = IndiceCodigos(doc)
+        trozos = trocear(doc, indice)
+        console.print(f"  [bold]{entrada.titulo or entrada.id}[/bold]")
+        console.print(
+            f"    {_plural(len(doc.paginas), 'página')} · "
+            f"{len(doc.texto):,} caracteres · "
+            f"{_plural(len(indice), 'código')} distinto"
+            f"{'s' if len(indice) != 1 else ''} · "
+            f"{_plural(len(trozos), 'trozo')}"
+        )
+        if not len(indice):
+            console.print(
+                "    [yellow]Ningún código de objetivo. O el documento no los trae, "
+                "o el patrón no cuadra con este país.[/yellow]"
+            )
+        else:
+            muestra = indice.codigos[:listar]
+            console.print(f"    [dim]{', '.join(muestra)}"
+                          + (f", … (+{len(indice) - len(muestra)})" if len(indice) > len(muestra) else "")
+                          + "[/dim]")
+            niveles = ", ".join(sorted(indice.niveles()))
+            asigs = ", ".join(sorted(indice.asignaturas()))
+            console.print(f"    [dim]niveles: {niveles} · asignaturas: {asigs}[/dim]")
+        console.print()
+
+
+@curriculum_app.command("extract")
+def curriculum_extract(
+    pais: str = typer.Option("CL", "--pais"),
+    nivel: str = typer.Option(None, "--nivel"),
+    asignatura: str = typer.Option(None, "--asignatura"),
+    ids: list[str] = typer.Option(None, "--id"),
+    cache: Path = typer.Option(desc.CACHE_POR_DEFECTO, "--cache"),
+    salida: Path = typer.Option(None, "--salida", "-o", help="YAML de destino."),
+    sin_pases: bool = typer.Option(
+        False, "--sin-pases", help="Solo extraer: sin prerrequisitos, resúmenes ni ítems."
+    ),
+    perfil: str = typer.Option(None, "--perfil", "-p"),
+) -> None:
+    """Convierte la caché en un currículo canónico, sin tocar la red."""
+    try:
+        config = cargar_config(perfil=perfil)
+    except (KeyError, OSError) as exc:
+        err_console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=2) from exc
+
+    inicio = time.time()
+    ultimo = {"etapa": ""}
+
+    def avanzar(etapa: str, hecho: int, total: int) -> None:
+        if etapa != ultimo["etapa"]:
+            console.print(f"  [dim]{etapa}…[/dim]")
+            ultimo["etapa"] = etapa
+        if total and (hecho == total or hecho % 10 == 0):
+            console.print(f"    {hecho}/{total}")
+
+    try:
+        curriculo, informe = importar(
+            pais,
+            config,
+            nivel=nivel,
+            asignatura=asignatura,
+            ids=list(ids) if ids else None,
+            cache=cache,
+            con_pases=not sin_pases,
+            al_avanzar=avanzar,
+        )
+    except (FileNotFoundError, KeyError, ImportError) as exc:
+        err_console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=2) from exc
+    except ErrorLLM as exc:
+        err_console.print(f"[red]el modelo falló:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    _informar_importacion(informe, time.time() - inicio)
+
+    destino = salida or Path(f"{curriculo.id}.yaml")
+    guardar(curriculo, destino)
+    console.print(f"  [green]escrito[/green] [dim]{destino}[/dim]")
+    console.print()
+    console.print(
+        "  Ahora: [bold]aula curriculum reparar "
+        f"{destino}[/bold] para cerrar lo que el validador encuentre."
+    )
+    console.print()
+    raise typer.Exit(code=0 if curriculo.objetivos else 1)
+
+
+def _informar_importacion(informe, segundos: float) -> None:
+    """Lo que hay que mirar después de importar, y nada más.
+
+    La cobertura va primero porque es la única métrica honesta: el denominador lo
+    calculó una expresión regular sobre el documento, no el modelo.
+    """
+    console.print()
+    console.print(f"  {informe.resumen()}  [dim]{segundos:.0f}s[/dim]")
+    for d in informe.documentos:
+        console.print(f"  [dim]· {d}[/dim]")
+
+    if informe.no_vistos:
+        console.print()
+        console.print(
+            f"  [yellow]{len(informe.no_vistos)} códigos del documento que el modelo "
+            f"no devolvió:[/yellow] [dim]{', '.join(informe.no_vistos[:8])}"
+            + ("…" if len(informe.no_vistos) > 8 else "")
+            + "[/dim]"
+        )
+    if informe.descartes:
+        console.print()
+        console.print(f"  [yellow]{len(informe.descartes)} descartes[/yellow]")
+        for d in informe.descartes[:6]:
+            console.print(f"    [dim]{d}[/dim]")
+        if len(informe.descartes) > 6:
+            console.print(f"    [dim]… y {len(informe.descartes) - 6} más[/dim]")
+    if informe.dudosos:
+        console.print()
+        console.print(
+            f"  [yellow]{len(informe.dudosos)} con confianza baja[/yellow], para mirar a "
+            f"mano: [dim]{', '.join(informe.dudosos[:8])}[/dim]"
+        )
+    for inf in informe.informes_pases:
+        console.print(f"  [dim]{inf}[/dim]")
+    for e in informe.errores[:5]:
+        console.print(f"  [red]{e}[/red]")
+    console.print()
+
+
+@curriculum_app.command("import")
+def curriculum_import(
+    pais: str = typer.Option("CL", "--pais"),
+    nivel: str = typer.Option(None, "--nivel"),
+    asignatura: str = typer.Option(None, "--asignatura"),
+    cache: Path = typer.Option(desc.CACHE_POR_DEFECTO, "--cache"),
+    salida: Path = typer.Option(None, "--salida", "-o"),
+    vueltas: int = typer.Option(4, "--vueltas"),
+    perfil: str = typer.Option(None, "--perfil", "-p"),
+    sin_red: bool = typer.Option(False, "--sin-red", help="Saltarse el fetch."),
+) -> None:
+    """Todo seguido: descargar, extraer y reparar. Es el comando de un solo paso.
+
+    El plan es que esto termine desatendido en menos de media hora. Si tarda más,
+    la respuesta correcta es recortar el alcance, no acostumbrarse a esperar.
+    """
+    inicio = time.time()
+    try:
+        config = cargar_config(perfil=perfil)
+    except (KeyError, OSError) as exc:
+        err_console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=2) from exc
+
+    if not sin_red:
+        docs = cat.documentos(pais, nivel=nivel, asignatura=asignatura)
+        if docs:
+            console.print()
+            console.print(f"  [dim]trayendo {len(docs)} documento(s)…[/dim]")
+            _, fallos = desc.traer_todos(docs, cache)
+            for doc_id, motivo in fallos:
+                console.print(f"  [yellow]sin traer[/yellow] {doc_id}: [dim]{motivo}[/dim]")
+
+    try:
+        curriculo, informe = importar(
+            pais, config, nivel=nivel, asignatura=asignatura, cache=cache
+        )
+    except (FileNotFoundError, KeyError, ImportError) as exc:
+        err_console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=2) from exc
+    except ErrorLLM as exc:
+        err_console.print(f"[red]el modelo falló:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    _informar_importacion(informe, time.time() - inicio)
+
+    proponente = ProponenteConModelo(
+        para_rol(config, Rol.ENRIQUECIMIENTO), permitir_agregado=False
+    )
+    reparado, reparacion = reparar(curriculo, proponente, max_vueltas=vueltas)
+    console.print(f"  {reparacion.resumen()}")
+
+    pendientes = reparacion.pendientes_para_el_padre
+    if pendientes:
+        console.print()
+        console.print("  [bold]Para que lo mires tú:[/bold]")
+        for h in pendientes[:12]:
+            color = "red" if h.severidad is Severidad.BLOQUEANTE else "yellow"
+            donde = f" [dim]{h.objetivo}[/dim]" if h.objetivo else ""
+            console.print(f"    [{color}]•[/{color}]{donde} {h.mensaje}")
+        if len(pendientes) > 12:
+            console.print(f"    [dim]… y {len(pendientes) - 12} más[/dim]")
+
+    destino = salida or Path(f"{reparado.id}.yaml")
+    guardar(reparado, destino)
+    console.print()
+    console.print(
+        f"  [green]escrito[/green] [dim]{destino}[/dim]  "
+        f"[dim]{time.time() - inicio:.0f}s en total[/dim]"
+    )
     console.print()
     raise typer.Exit(code=0 if reparacion.ok else 1)
 

@@ -15,7 +15,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+# Leer PDF solo hace falta para importar currículos. El motor de tutoría no
+# lo necesita, así que no se le carga la dependencia a quien solo lo usa.
+importador = ["pdfminer.six>=20221105"]
+dev = ["pytest>=8", "pdfminer.six>=20221105"]
 
 [project.scripts]
 aula = "aula.cli:main"
