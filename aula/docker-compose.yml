@@ -36,7 +36,6 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./src:/app/src
-      - ./config:/app/config
       - ./datos:/app/datos
     command: ["sleep", "infinity"]
 

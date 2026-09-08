@@ -22,7 +22,28 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, Field
 
-RUTA_CONFIG_POR_DEFECTO = Path(__file__).resolve().parents[2] / "config" / "modelos.yaml"
+def _buscar_config() -> Path:
+    """Encuentra `modelos.yaml` sin obligar a estar parado en la carpeta correcta.
+
+    Por orden: la variable AULA_CONFIG, la carpeta actual, y la del propio
+    paquete. Sin esto, `aula config probe` desde el escritorio falla con un
+    "no such file" que no le dice nada a nadie.
+    """
+    if (env := os.environ.get("AULA_CONFIG")):
+        return Path(env)
+    # Primero el archivo del paquete (la fuente de verdad), luego uno propio en
+    # la carpeta actual por si alguien quiere sobreescribir la configuración.
+    candidatas = [
+        Path.cwd() / "modelos.yaml",
+        Path(__file__).resolve().parent / "config" / "modelos.yaml",
+    ]
+    for candidata in candidatas:
+        if candidata.exists():
+            return candidata
+    return candidatas[-1]
+
+
+RUTA_CONFIG_POR_DEFECTO = None
 
 
 class Rol(str, Enum):
@@ -210,7 +231,13 @@ def cargar_config(
     El perfil sale, por orden de prioridad: del argumento, de `AULA_PERFIL`, o
     del `perfil_por_defecto` del archivo.
     """
-    ruta = Path(ruta) if ruta else RUTA_CONFIG_POR_DEFECTO
+    ruta = Path(ruta) if ruta else _buscar_config()
+    if not Path(ruta).exists():
+        raise FileNotFoundError(
+            f"no encuentro la configuración de modelos en {ruta}. "
+            "Corre el comando desde la carpeta del proyecto, o exporta "
+            "AULA_CONFIG con la ruta a modelos.yaml."
+        )
     with Path(ruta).open(encoding="utf-8") as fh:
         datos = yaml.safe_load(fh) or {}
 

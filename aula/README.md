@@ -127,7 +127,7 @@ No hay "un modelo": hay **roles** con exigencias y precios muy distintos.
 | `items` | una vez por nivel | variedad |
 | `resumen` | una vez por objetivo | densidad; **son el índice RAG** |
 
-Cuatro perfiles en `config/modelos.yaml`:
+Cinco perfiles en `src/aula/config/modelos.yaml`:
 
 | Perfil | Reparto | Coste |
 | --- | --- | --- |
