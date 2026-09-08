@@ -9,6 +9,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import sys
+import time
 from pathlib import Path
 
 import typer
@@ -26,8 +27,10 @@ from aula.familia import (
     cargar_familia,
     guardar_familia,
 )
+from aula.curriculum.proponente import ProponenteConModelo
+from aula.curriculum.reparador import reparar
 from aula.llm.cliente import ErrorLLM, para_rol
-from aula.curriculum.io import cargar
+from aula.curriculum.io import cargar, guardar
 from aula.curriculum.validator import Severidad, validar
 
 app = typer.Typer(help="Aula — tutoría con IA anclada a un currículo validado.")
@@ -347,6 +350,150 @@ def familia_mostrar(ruta: Path = typer.Option(None, "--ruta")) -> None:
         )
     console.print(f"  [dim]tope conjunto: US${familia.presupuesto_total_usd:g}/mes[/dim]")
     console.print()
+
+
+ESQUEMA_PRUEBA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "capital": {"type": "string"},
+        "habitantes_millones": {"type": "number"},
+        "es_isla": {"type": "boolean"},
+    },
+    "required": ["capital", "habitantes_millones", "es_isla"],
+}
+
+
+@config_app.command("test")
+def config_test(
+    rol: Rol = typer.Option(Rol.TUTOR, "--rol", "-r", help="Qué rol probar."),
+    todos: bool = typer.Option(False, "--todos", help="Prueba todos los roles."),
+    perfil: str = typer.Option(None, "--perfil", "-p"),
+) -> None:
+    """Comprueba que el modelo respeta un esquema JSON.
+
+    Es el supuesto que sostiene todo el diseño local: el vocabulario cerrado de
+    reparación depende de que el servidor obligue al modelo a producir algo con
+    la forma correcta. Si un modelo no lo respeta, hay que saberlo antes de
+    construir encima, no después.
+    """
+    try:
+        config = cargar_config(perfil=perfil)
+    except (KeyError, OSError, FileNotFoundError) as exc:
+        err_console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=2) from exc
+
+    roles = [r for r in Rol if r in config.roles] if todos else [rol]
+    roles = [r for r in roles if r is not Rol.EMBEDDINGS]
+
+    console.print()
+    fallos = 0
+    for r in roles:
+        cfg = config.para(r)
+        console.print(f"  [bold]{r.value}[/bold]  [dim]{cfg.modelo}[/dim]")
+        inicio = time.monotonic()
+        try:
+            respuesta = para_rol(config, r).completar(
+                [
+                    {"role": "system", "content": "Responde solo con el JSON pedido."},
+                    {"role": "user", "content": "Datos de Chile."},
+                ],
+                esquema=ESQUEMA_PRUEBA,
+                nombre_esquema="pais",
+            )
+            datos = respuesta.json_()
+        except ErrorLLM as exc:
+            fallos += 1
+            console.print(f"    [red]falló[/red] — {exc}")
+            console.print()
+            continue
+
+        segundos = time.monotonic() - inicio
+        faltan = [c for c in ESQUEMA_PRUEBA["required"] if c not in datos]
+        sobran = [c for c in datos if c not in ESQUEMA_PRUEBA["properties"]]
+
+        if faltan or sobran or not isinstance(datos.get("es_isla"), bool):
+            fallos += 1
+            console.print(f"    [red]no respeta el esquema[/red] — devolvió {datos}")
+            console.print(
+                "    [dim]Sin decodificación restringida, el vocabulario cerrado "
+                "de reparación no se sostiene con este modelo.[/dim]"
+            )
+        else:
+            console.print(f"    [green]respeta el esquema[/green] — {datos}")
+        console.print(f"    [dim]{segundos:.1f} s · {respuesta.tokens_salida} tokens[/dim]")
+        console.print()
+
+    if fallos:
+        console.print(f"  [red]{fallos} de {len(roles)} fallaron.[/red]")
+        console.print()
+    raise typer.Exit(code=1 if fallos else 0)
+
+
+@curriculum_app.command("reparar")
+def curriculum_reparar(
+    archivo: Path = typer.Argument(..., help="Currículo en YAML."),
+    salida: Path = typer.Option(None, "--salida", "-o", help="Dónde escribir el reparado."),
+    vueltas: int = typer.Option(4, "--vueltas", help="Tope de iteraciones."),
+    perfil: str = typer.Option(None, "--perfil", "-p"),
+) -> None:
+    """Deja que el modelo cierre solo lo que el validador encontró.
+
+    Solo llega a ti lo que la máquina no supo cerrar.
+    """
+    try:
+        curriculo = cargar(archivo)
+        config = cargar_config(perfil=perfil)
+    except (KeyError, OSError, FileNotFoundError, ValueError) as exc:
+        err_console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=2) from exc
+
+    cliente = para_rol(config, Rol.ENRIQUECIMIENTO)
+    proponente = ProponenteConModelo(cliente, permitir_agregado=False)
+
+    console.print()
+    console.print(
+        f"  [bold]{curriculo.id}[/bold] v{curriculo.version} — "
+        f"{len(curriculo.objetivos)} objetivos"
+    )
+    console.print(f"  [dim]reparando con {cliente.modelo.modelo}[/dim]")
+    console.print()
+
+    def contar(vuelta) -> None:
+        aplicadas = sum(1 for a in vuelta.aplicaciones if a.aplicada)
+        estado = "[green]adoptada[/green]" if vuelta.adoptada else "[yellow]descartada[/yellow]"
+        console.print(
+            f"  vuelta {vuelta.numero}: {vuelta.bloqueantes_antes} → "
+            f"{vuelta.bloqueantes_despues} bloqueantes, "
+            f"{aplicadas}/{len(vuelta.aplicaciones)} operaciones · {estado}"
+        )
+        if not vuelta.adoptada:
+            console.print(f"  [dim]{vuelta.motivo}[/dim]")
+
+    reparado, reparacion = reparar(curriculo, proponente, max_vueltas=vueltas, al_avanzar=contar)
+
+    console.print()
+    if proponente.ultimo_error:
+        console.print(f"  [yellow]aviso del modelo:[/yellow] {proponente.ultimo_error}")
+    console.print(f"  {reparacion.resumen()}")
+
+    pendientes = reparacion.pendientes_para_el_padre
+    if pendientes:
+        console.print()
+        console.print("  [bold]Para que lo mires tú:[/bold]")
+        for h in pendientes[:12]:
+            color = "red" if h.severidad is Severidad.BLOQUEANTE else "yellow"
+            donde = f" [dim]{h.objetivo}[/dim]" if h.objetivo else ""
+            console.print(f"    [{color}]•[/{color}]{donde} {h.mensaje}")
+        if len(pendientes) > 12:
+            console.print(f"    [dim]… y {len(pendientes) - 12} más[/dim]")
+
+    destino = salida or archivo.with_name(archivo.stem + ".reparado.yaml")
+    guardar(reparado, destino)
+    console.print()
+    console.print(f"  [green]escrito[/green] [dim]{destino}[/dim]")
+    console.print()
+    raise typer.Exit(code=0 if reparacion.ok else 1)
 
 
 def main() -> None:  # pragma: no cover - punto de entrada

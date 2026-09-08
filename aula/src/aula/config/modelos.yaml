@@ -52,48 +52,72 @@ proveedores:
 
 perfiles:
 
-  # Tu máquina: Gemma en LM Studio. `auto` le pregunta al servidor qué tiene
-  # cargado, así no hay que acertar el identificador exacto del modelo.
+  # Tu máquina, con los modelos que tienes cargados en LM Studio.
+  #
+  # El reparto respeta el coste de intercambio: en un Mac, cambiar de modelo
+  # cuesta segundos o decenas de segundos de carga. Por eso los roles en vivo
+  # comparten UNO solo (mientras el niño trabaja no se descarga nada) y los roles
+  # por lotes comparten OTRO, que se carga una vez para toda la importación.
+  #
+  # Requiere "JIT model loading" activado en LM Studio para que pida el modelo
+  # por nombre; si no, deja `auto` y usa el que tengas cargado.
   lmstudio:
+    # --- en vivo, con el niño delante: siempre el mismo, sin recargas ---
     tutor:
       proveedor: lmstudio
-      modelo: auto
+      modelo: google/gemma-4-12b-qat
       temperatura: 0.3
       max_tokens: 400
       presupuesto_contexto: 1500
     anclaje:
       proveedor: lmstudio
-      modelo: auto
+      modelo: google/gemma-4-12b-qat
       temperatura: 0.0
       max_tokens: 64
     rubrica:
       proveedor: lmstudio
-      modelo: auto
+      modelo: google/gemma-4-12b-qat
       temperatura: 0.0
       max_tokens: 600
+
+    # --- por lotes, sin nadie esperando: se puede pagar un modelo más grande ---
     extraccion:
       proveedor: lmstudio
-      modelo: auto
+      modelo: google/gemma-4-26b-a4b-qat
       temperatura: 0.0
       max_tokens: 4000
     enriquecimiento:
+      # Inferir el grafo de prerrequisitos es el razonamiento más duro de todo
+      # el pipeline, y es lo que ningún ministerio publica.
       proveedor: lmstudio
-      modelo: auto
+      modelo: qwen/qwen3.8-27b
       temperatura: 0.1
       max_tokens: 2000
     items:
       proveedor: lmstudio
-      modelo: auto
+      modelo: google/gemma-4-26b-a4b-qat
       temperatura: 0.7
       max_tokens: 2000
     resumen:
+      # Estos resúmenes SON el índice RAG: se escriben una vez y se leen en cada
+      # turno durante años. Un modelo chico basta y va mucho más rápido.
       proveedor: lmstudio
-      modelo: auto
+      modelo: google/gemma-4-e4b
       temperatura: 0.0
       max_tokens: 200
+    embeddings:
+      proveedor: lmstudio
+      modelo: text-embedding-nomic-embed-text-v1.5
+      temperatura: 0.0
+      max_tokens: 0
 
   # Todo en el Mac con Ollama. Coste 0.
   local:
+    embeddings:
+      proveedor: ollama
+      modelo: nomic-embed-text
+      temperatura: 0.0
+      max_tokens: 0
     tutor:
       proveedor: ollama
       modelo: qwen2.5:7b
@@ -144,6 +168,11 @@ perfiles:
   # método socrático cuando el niño insista en que le den la respuesta. Si cede,
   # el tutor es la única pieza que vale la pena pagar (perfil `hibrido`).
   plan-premium:
+    embeddings:
+      proveedor: ollama
+      modelo: nomic-embed-text
+      temperatura: 0.0
+      max_tokens: 0
     tutor:
       proveedor: ollama
       modelo: qwen2.5:7b
@@ -184,6 +213,11 @@ perfiles:
   # Recomendado para las sesiones reales: el tutor en la nube, el resto local.
   # El tutor es donde se nota la diferencia; lo demás no la justifica.
   hibrido:
+    embeddings:
+      proveedor: ollama
+      modelo: nomic-embed-text
+      temperatura: 0.0
+      max_tokens: 0
     tutor:
       proveedor: openai
       modelo: gpt-5-mini
@@ -223,6 +257,11 @@ perfiles:
 
   # Todo en la nube. Máxima calidad, y aun así son unos pocos dólares al mes.
   nube:
+    embeddings:
+      proveedor: openai
+      modelo: text-embedding-3-small
+      temperatura: 0.0
+      max_tokens: 0
     tutor:
       proveedor: openai
       modelo: gpt-5

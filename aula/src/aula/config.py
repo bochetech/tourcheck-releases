@@ -52,6 +52,7 @@ class Rol(str, Enum):
     TUTOR = "tutor"
     ANCLAJE = "anclaje"
     RUBRICA = "rubrica"
+    EMBEDDINGS = "embeddings"
     EXTRACCION = "extraccion"
     ENRIQUECIMIENTO = "enriquecimiento"
     ITEMS = "items"
