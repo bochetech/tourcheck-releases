@@ -4,11 +4,11 @@
 # socrático, el anclaje corre en cada turno y debe ser barato, y la extracción
 # va por lotes sin ningún niño delante.
 
-perfil_por_defecto: local
+perfil_por_defecto: lmstudio
 
 proveedores:
   ollama:
-    base_url: http://localhost:11434/v1
+    base_url: http://${AULA_HOST_LLM:-127.0.0.1}:11434/v1
     api_key_env: OLLAMA_API_KEY
     apto_para_menores: true
     notas: >-
@@ -16,10 +16,14 @@ proveedores:
       términos de terceros que apliquen.
 
   lmstudio:
-    base_url: http://localhost:1234/v1
+    base_url: http://${AULA_HOST_LLM:-127.0.0.1}:1234/v1
     api_key_env: LMSTUDIO_API_KEY
     apto_para_menores: true
-    notas: Igual que Ollama; expone la misma interfaz compatible con OpenAI.
+    notas: >-
+      Corre nativo en el Mac, nunca dentro de Docker: Docker Desktop en macOS no
+      pasa la GPU al contenedor y el modelo caería a 2-8 tokens/s. Desde un
+      contenedor hay que apuntar a host.docker.internal, no a 127.0.0.1: para eso
+      está AULA_HOST_LLM.
 
   openai:
     base_url: https://api.openai.com/v1
@@ -48,7 +52,47 @@ proveedores:
 
 perfiles:
 
-  # Todo en el Mac. Coste 0. Para desarrollar e iterar sin cuotas.
+  # Tu máquina: Gemma en LM Studio. `auto` le pregunta al servidor qué tiene
+  # cargado, así no hay que acertar el identificador exacto del modelo.
+  lmstudio:
+    tutor:
+      proveedor: lmstudio
+      modelo: auto
+      temperatura: 0.3
+      max_tokens: 400
+      presupuesto_contexto: 1500
+    anclaje:
+      proveedor: lmstudio
+      modelo: auto
+      temperatura: 0.0
+      max_tokens: 64
+    rubrica:
+      proveedor: lmstudio
+      modelo: auto
+      temperatura: 0.0
+      max_tokens: 600
+    extraccion:
+      proveedor: lmstudio
+      modelo: auto
+      temperatura: 0.0
+      max_tokens: 4000
+    enriquecimiento:
+      proveedor: lmstudio
+      modelo: auto
+      temperatura: 0.1
+      max_tokens: 2000
+    items:
+      proveedor: lmstudio
+      modelo: auto
+      temperatura: 0.7
+      max_tokens: 2000
+    resumen:
+      proveedor: lmstudio
+      modelo: auto
+      temperatura: 0.0
+      max_tokens: 200
+
+  # Todo en el Mac con Ollama. Coste 0.
   local:
     tutor:
       proveedor: ollama

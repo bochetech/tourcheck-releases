@@ -1,5 +1,8 @@
 # Infraestructura local para desarrollo en el Mac.
-# Todo corre en tu máquina: no hay nada en la nube hasta la Fase 6.
+#
+# El modelo NO va aquí: Docker Desktop en macOS no pasa la GPU al contenedor y
+# Gemma caería a 2-8 tokens/s. LM Studio (u Ollama) corre nativo en el Mac y la
+# app lo alcanza por host.docker.internal — para eso está AULA_HOST_LLM.
 services:
   db:
     image: pgvector/pgvector:pg16
@@ -16,6 +19,26 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Desde dentro del contenedor, 127.0.0.1 es el contenedor. El modelo vive
+      # en el Mac, así que hay que salir al host.
+      AULA_HOST_LLM: host.docker.internal
+      AULA_PERFIL: lmstudio
+      DATABASE_URL: postgresql://aula:aula@db:5432/aula
+    extra_hosts:
+      # Docker Desktop ya lo resuelve; esta línea hace que también funcione en Linux.
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./src:/app/src
+      - ./config:/app/config
+      - ./datos:/app/datos
+    command: ["sleep", "infinity"]
 
 volumes:
   datos_db:

@@ -14,13 +14,16 @@ El diseño completo, con la investigación que lo sostiene, está en
 | Pieza | Estado |
 | --- | --- |
 | Modelo canónico del currículo | ✅ funciona |
-| **Validador de 12 reglas duras** | ✅ funciona, 31 tests |
+| **Validador de 12 reglas duras** | ✅ funciona |
 | Índice de legibilidad en español (Fernández Huerta) | ✅ funciona |
 | Lectura/escritura YAML diffeable | ✅ funciona |
 | CLI `aula curriculum validate` | ✅ funciona |
-| **Configuración de modelos por rol** | ✅ funciona, 4 perfiles |
+| **Configuración de modelos por rol** | ✅ funciona, 5 perfiles |
+| **Vocabulario cerrado de reparación** | ✅ funciona, 11 operaciones |
+| **Bucle de auto-reparación** | ✅ funciona |
+| **Cliente de modelos (OpenAI-compatible)** | ✅ funciona, local y nube |
+| **Familia, estudiantes y asignación de planes** | ✅ funciona |
 | Importador desde `curriculumnacional.cl` | ⬜ siguiente |
-| Bucle de auto-reparación | ⬜ siguiente |
 | Motor socrático, anclaje, voz | ⬜ fases 2-5 |
 
 ## Por qué el validador va primero
@@ -64,6 +67,52 @@ bucle no logró cerrar.
 Las advertencias **no frenan el arranque**: van a la cola de excepciones y se
 revisan mientras los niños ya usan el sistema.
 
+## No está hecho para una sola familia
+
+`Familia → Estudiantes → Asignación`. Multi-estudiante desde el primer día, aunque
+la primera familia tenga dos hijos: añadirlo después obliga a reescribir el
+esquema entero, y hacerlo ahora cuesta casi nada.
+
+```bash
+aula familia crear "Familia Pérez" --adulto Ana
+aula familia agregar "Mateo" --nacimiento 2019-04-10
+aula familia asignar mateo --curriculo cl-mineduc-2026 --version 2026-03 --nivel 02
+aula familia mostrar
+```
+
+La edad decide la piel y el perfil de voz por defecto —Explorador y voz
+restringida por debajo de los 10, Taller y voz abierta por encima— y un adulto
+puede fijar ambos a mano: un niño de 11 con dificultades de lectura puede
+necesitar Explorador, y uno de 9 muy adelantado, Taller.
+
+**El plan se fija a una versión concreta.** Si el ministerio publica una versión
+nueva a mitad de año, el niño sigue con la que empezó hasta que un adulto lo
+migre, y la migración queda en el historial. No es burocracia: el currículo
+chileno está en disputa y la estructura 8+4 pasa a 6+6 en 2027.
+
+⚠️ Esto cubre **una instalación por familia**. Alojar a familias de terceros es
+otro proyecto: añade cuentas, facturación y responsabilidad legal sobre datos de
+menores ajenos.
+
+## El plan se corrige solo
+
+El validador no es una puerta para el padre: es el bucle de retroalimentación de
+la IA. El modelo **no reescribe el YAML** — propone operaciones de un vocabulario
+cerrado de 11, que el código valida contra el currículo real antes de aplicar.
+
+```
+validar → proponer → aplicar → revalidar → repetir
+```
+
+Dos propiedades de seguridad:
+
+- El modelo solo puede actuar con el vocabulario cerrado. Aunque alucine, no
+  puede romper el plan: lo que no cuadra se descarta con un motivo, y ese motivo
+  vuelve al modelo en la vuelta siguiente.
+- **Una vuelta que empeore el plan se descarta entera.** Se trabaja sobre una
+  copia y solo se adopta si los bloqueantes bajaron. Un bucle que puede degradar
+  el currículo es peor que no tener bucle.
+
 ## Modelos configurables, por rol
 
 No hay "un modelo": hay **roles** con exigencias y precios muy distintos.
@@ -86,6 +135,7 @@ Cuatro perfiles en `config/modelos.yaml`:
 | **`plan-premium`** | **construir el plan en la nube, dar clases en local** | ~5-20 USD una vez por nivel, ~0/mes |
 | `hibrido` | tutor en la nube, resto local | ~2-8 USD/mes |
 | `nube` | todo en la nube | ~8-16 USD/mes |
+| `lmstudio` | todo en LM Studio, con `modelo: auto` | 0 |
 
 `plan-premium` es el reparto recomendado, y la razón es que **la calidad del plan
 se acumula y la de una clase no**: un prerrequisito mal inferido envenena todas
@@ -104,7 +154,22 @@ Comparar local contra nube no exige editar archivos:
 
 ```bash
 AULA_MODELO_TUTOR=gpt-5-mini AULA_PROVEEDOR_TUTOR=openai aula config show
+aula config probe                 # ¿responde el servidor? ¿qué modelo tiene cargado?
 ```
+
+`modelo: auto` le pregunta al servidor qué tiene cargado, así no hay que acertar
+el identificador exacto que LM Studio le pone al modelo.
+
+### Docker sí, pero el modelo fuera
+
+Docker Desktop en macOS **no pasa la GPU al contenedor**: un modelo dentro caería
+a 2-8 tokens/s, que es justo el caso inviable. LM Studio corre nativo en el Mac;
+en Docker van la app, Postgres y el resto.
+
+Y el detalle que rompe a todo el mundo: desde dentro de un contenedor `127.0.0.1`
+es el contenedor, no el Mac. Por eso las URL locales llevan
+`${AULA_HOST_LLM:-127.0.0.1}` y el `docker-compose.yml` fija
+`AULA_HOST_LLM=host.docker.internal`.
 
 ## Correr
 
@@ -112,7 +177,7 @@ AULA_MODELO_TUTOR=gpt-5-mini AULA_PROVEEDOR_TUTOR=openai aula config show
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
-pytest                                                   # 43 tests
+pytest                                                   # 122 tests
 aula curriculum validate ejemplos/cl-2basico-matematica.yaml   # pasa
 aula curriculum validate ejemplos/cl-2basico-roto.yaml         # 4 bloqueantes
 aula curriculum validate ejemplos/cl-2basico-roto.yaml --json  # para el bucle

@@ -15,6 +15,7 @@ difieren respecto de menores, y este módulo lo hace explícito
 from __future__ import annotations
 
 import os
+import re
 from enum import Enum
 from pathlib import Path
 
@@ -39,6 +40,19 @@ class Rol(str, Enum):
 #: Roles que procesan lo que dice un niño, en vivo. Los términos de uso del
 #: proveedor importan aquí; en el resto, no hay menor de por medio.
 ROLES_CARA_AL_NINO: frozenset[Rol] = frozenset({Rol.TUTOR, Rol.ANCLAJE, Rol.RUBRICA})
+
+
+_VARIABLE = re.compile(r"\$\{(\w+)(?::-([^}]*))?\}")
+
+
+def _expandir(texto: str) -> str:
+    """Sustituye `${VAR}` y `${VAR:-porDefecto}` con el entorno.
+
+    Existe por un caso muy concreto: dentro de un contenedor, `127.0.0.1` es el
+    propio contenedor, no el Mac. `AULA_HOST_LLM=host.docker.internal` reapunta
+    todos los proveedores locales sin tocar el archivo.
+    """
+    return _VARIABLE.sub(lambda m: os.environ.get(m.group(1), m.group(2) or ""), texto)
 
 
 class Proveedor(BaseModel):
@@ -200,10 +214,11 @@ def cargar_config(
     with Path(ruta).open(encoding="utf-8") as fh:
         datos = yaml.safe_load(fh) or {}
 
-    proveedores = {
-        pid: Proveedor(id=pid, **cuerpo)
-        for pid, cuerpo in (datos.get("proveedores") or {}).items()
-    }
+    proveedores = {}
+    for pid, cuerpo in (datos.get("proveedores") or {}).items():
+        cuerpo = dict(cuerpo)
+        cuerpo["base_url"] = _expandir(cuerpo.get("base_url", ""))
+        proveedores[pid] = Proveedor(id=pid, **cuerpo)
 
     perfiles = datos.get("perfiles") or {}
     elegido = perfil or os.environ.get("AULA_PERFIL") or datos.get("perfil_por_defecto")

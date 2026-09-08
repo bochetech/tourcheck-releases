@@ -138,7 +138,8 @@ def test_perfil_plan_premium_invierte_el_gasto_hacia_la_construccion():
     for rol in construccion:
         assert config.proveedor_de(rol).base_url.startswith("https://"), rol
     for rol in ejecucion:
-        assert config.proveedor_de(rol).base_url.startswith("http://localhost"), rol
+        url = config.proveedor_de(rol).base_url
+        assert url.startswith("http://") and "127.0.0.1" in url or "localhost" in url, rol
 
 
 def test_plan_premium_no_dispara_avisos_por_menores():
