@@ -1,0 +1,227 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+  <style>
+    :root {
+      --papel: oklch(0.975 0.010 85);
+      --papel-alto: oklch(0.998 0.004 85);
+      --tinta: oklch(0.26 0.02 60);
+      --tinta-suave: oklch(0.53 0.02 60);
+      --terracota: oklch(0.58 0.14 45);
+      --teal: oklch(0.56 0.14 200);
+      --verde: oklch(0.58 0.13 145);
+      --borde: oklch(0.90 0.014 75);
+      --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+      --lectura: "Literata", ui-serif, Georgia, serif;
+      --mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+    }
+    body { margin: 0; background: var(--papel); color: var(--tinta); font-family: var(--lectura); }
+    a { color: var(--teal); } a:hover { color: oklch(0.46 0.14 200); }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: var(--papel); overflow: hidden">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 24px 40px; border-bottom: 1px solid var(--borde); background: var(--papel-alto)">
+    <div style="display: flex; align-items: center; gap: 28px">
+      <span style="font-family: var(--display); font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Aula</span>
+      <div style="display: flex; gap: 6px">
+        <button style="height: 36px; padding: 0 18px; border-radius: 9px; border: 1px solid var(--borde); background: var(--tinta); color: var(--papel-alto); font-family: var(--display); font-size: 15px; font-weight: 600; cursor: pointer">Mateo &middot; 2º</button>
+        <button style="height: 36px; padding: 0 18px; border-radius: 9px; border: 1px solid var(--borde); background: transparent; color: var(--tinta-suave); font-family: var(--display); font-size: 15px; font-weight: 600; cursor: pointer">Sofía &middot; 7º</button>
+      </div>
+    </div>
+    <span style="font-size: 15px; color: var(--tinta-suave)">Semana del 2 al 8 de septiembre</span>
+  </div>
+
+  <div style="display: flex; gap: 26px; padding: 26px 40px; flex-grow: 1; overflow: hidden">
+
+    <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 22px; overflow: hidden">
+
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-family: var(--display); font-size: 19px; font-weight: 600">Dónde poner tu hora</h2>
+
+        <div style="display: flex; align-items: flex-start; gap: 16px; background: var(--papel-alto); border: 1px solid var(--terracota); border-left: 3px solid var(--terracota); border-radius: 10px; padding: 18px 22px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; margin-top: 2px">
+            <path d="M12 8v5M12 16.5v.5" stroke="var(--terracota)" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="9" stroke="var(--terracota)" stroke-width="1.6"/>
+          </svg>
+          <div style="flex-grow: 1">
+            <div style="font-family: var(--display); font-size: 16px; font-weight: 600">Lleva 3 sesiones atascado en restar llevando</div>
+            <div style="font-size: 15px; color: var(--tinta-suave); margin-top: 6px; line-height: 1.5">
+              Entiende la resta, pero no el canje de la decena. El tutor ya bajó al prerrequisito
+              y sigue igual: conviene que te sientes con él con material concreto.
+            </div>
+          </div>
+          <button style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--borde); background: var(--papel); font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--tinta); cursor: pointer; white-space: nowrap">Ver sesiones</button>
+        </div>
+
+        <div style="display: flex; align-items: flex-start; gap: 16px; background: var(--papel-alto); border: 1px solid var(--borde); border-left: 3px solid var(--teal); border-radius: 10px; padding: 18px 22px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; margin-top: 2px">
+            <path d="M12 3l2.5 5.6 6.1.7-4.5 4.1 1.2 6-5.3-3-5.3 3 1.2-6L3.4 9.3l6.1-.7z" stroke="var(--teal)" stroke-width="1.8" stroke-linejoin="round"/>
+          </svg>
+          <div style="flex-grow: 1">
+            <div style="font-family: var(--display); font-size: 16px; font-weight: 600">Preguntó tres veces por los planetas</div>
+            <div style="font-size: 15px; color: var(--tinta-suave); margin-top: 6px; line-height: 1.5">
+              Fuera del plan, así que el tutor no se desvió. Es material para un proyecto.
+            </div>
+          </div>
+          <button style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--borde); background: var(--papel); font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--tinta); cursor: pointer; white-space: nowrap">Proponer</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; align-items: baseline; justify-content: space-between">
+          <h2 style="margin: 0; font-family: var(--display); font-size: 19px; font-weight: 600">Mapa de dominio</h2>
+          <span style="font-size: 14px; color: var(--tinta-suave)">por objetivo, no por promedio</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 9px">
+
+          <div style="display: flex; align-items: center; gap: 16px">
+            <span style="width: 132px; font-size: 15px; flex-shrink: 0">Matemática</span>
+            <div style="display: flex; gap: 4px; flex-grow: 1">
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: var(--teal)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: var(--teal)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.56 0.14 200 / 0.62)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.58 0.14 45 / 0.85)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 16px">
+            <span style="width: 132px; font-size: 15px; flex-shrink: 0">Lenguaje</span>
+            <div style="display: flex; gap: 4px; flex-grow: 1">
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: var(--teal)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: var(--teal)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: var(--teal)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: var(--teal)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.56 0.14 200 / 0.62)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 16px">
+            <span style="width: 132px; font-size: 15px; flex-shrink: 0">Ciencias</span>
+            <div style="display: flex; gap: 4px; flex-grow: 1">
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: var(--teal)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.56 0.14 200 / 0.62)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 16px">
+            <span style="width: 132px; font-size: 15px; flex-shrink: 0">Historia</span>
+            <div style="display: flex; gap: 4px; flex-grow: 1">
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: var(--teal)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.56 0.14 200 / 0.62)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.56 0.14 200 / 0.62)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+              <div style="flex-grow: 1; height: 24px; border-radius: 4px; background: oklch(0.90 0.014 75)"></div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 22px; margin-top: 6px; font-size: 13px; color: var(--tinta-suave)">
+            <div style="display: flex; align-items: center; gap: 7px"><div style="width: 13px; height: 13px; border-radius: 3px; background: var(--teal)"></div>dominado</div>
+            <div style="display: flex; align-items: center; gap: 7px"><div style="width: 13px; height: 13px; border-radius: 3px; background: oklch(0.56 0.14 200 / 0.62)"></div>en progreso</div>
+            <div style="display: flex; align-items: center; gap: 7px"><div style="width: 13px; height: 13px; border-radius: 3px; background: oklch(0.58 0.14 45 / 0.85)"></div>atascado</div>
+            <div style="display: flex; align-items: center; gap: 7px"><div style="width: 13px; height: 13px; border-radius: 3px; background: oklch(0.90 0.014 75)"></div>sin ver</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; flex-grow: 1; overflow: hidden">
+        <div style="display: flex; align-items: baseline; justify-content: space-between">
+          <h2 style="margin: 0; font-family: var(--display); font-size: 19px; font-weight: 600">Sesiones de esta semana</h2>
+          <span style="font-size: 14px; color: var(--tinta-suave)">todas con transcripción completa</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; gap: 18px; background: var(--papel-alto); border: 1px solid var(--borde); border-radius: 9px; padding: 14px 18px">
+            <span style="font-size: 14px; color: var(--tinta-suave); width: 84px; flex-shrink: 0; font-variant-numeric: tabular-nums">Mié 09:15</span>
+            <span style="font-size: 15px; flex-grow: 1">Matemática &middot; restar llevando</span>
+            <span style="font-size: 14px; color: var(--terracota)">atascado</span>
+            <span style="font-size: 14px; color: var(--tinta-suave); font-variant-numeric: tabular-nums">22 min</span>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="var(--tinta-suave)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div style="display: flex; align-items: center; gap: 18px; background: var(--papel-alto); border: 1px solid var(--borde); border-radius: 9px; padding: 14px 18px">
+            <span style="font-size: 14px; color: var(--tinta-suave); width: 84px; flex-shrink: 0; font-variant-numeric: tabular-nums">Mar 09:20</span>
+            <span style="font-size: 15px; flex-grow: 1">Lectura &middot; «El pueblo de los cuentos»</span>
+            <span style="font-size: 14px; color: var(--verde)">completada</span>
+            <span style="font-size: 14px; color: var(--tinta-suave); font-variant-numeric: tabular-nums">26 min</span>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="var(--tinta-suave)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="width: 316px; display: flex; flex-direction: column; gap: 16px; flex-shrink: 0">
+
+      <div style="background: var(--papel-alto); border: 1px solid var(--borde); border-radius: 12px; padding: 20px 22px">
+        <div style="font-family: var(--display); font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--tinta-suave)">Tus horas con él</div>
+        <div style="display: flex; align-items: baseline; gap: 9px; margin-top: 12px">
+          <span style="font-family: var(--display); font-size: 34px; font-weight: 800; letter-spacing: -0.02em; line-height: 1">4 h 10</span>
+          <span style="font-size: 14px; color: var(--tinta-suave)">de 7 h 30</span>
+        </div>
+        <div style="height: 6px; border-radius: 4px; background: oklch(0.90 0.014 75); overflow: hidden; margin-top: 12px"><div style="width: 55%; height: 100%; background: var(--terracota)"></div></div>
+        <div style="font-size: 13px; color: var(--tinta-suave); margin-top: 12px; line-height: 1.5">
+          Es la variable que más pesa en los resultados. Vas por debajo de tu propia meta.
+        </div>
+      </div>
+
+      <div style="background: var(--papel-alto); border: 1px solid var(--borde); border-radius: 12px; padding: 20px 22px">
+        <div style="font-family: var(--display); font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--tinta-suave)">Temario 2º básico</div>
+        <div style="display: flex; align-items: baseline; gap: 9px; margin-top: 12px">
+          <span style="font-family: var(--display); font-size: 34px; font-weight: 800; letter-spacing: -0.02em; line-height: 1">38%</span>
+        </div>
+        <div style="height: 6px; border-radius: 4px; background: oklch(0.90 0.014 75); overflow: hidden; margin-top: 12px"><div style="width: 38%; height: 100%; background: var(--teal)"></div></div>
+      </div>
+
+      <div style="background: var(--papel-alto); border: 1px solid var(--borde); border-radius: 12px; padding: 20px 22px">
+        <div style="font-family: var(--display); font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--tinta-suave)">Gasto del mes</div>
+        <div style="display: flex; align-items: baseline; gap: 9px; margin-top: 12px">
+          <span style="font-family: var(--display); font-size: 34px; font-weight: 800; letter-spacing: -0.02em; line-height: 1">US$3,10</span>
+          <span style="font-size: 14px; color: var(--tinta-suave)">tope 8</span>
+        </div>
+        <div style="height: 6px; border-radius: 4px; background: oklch(0.90 0.014 75); overflow: hidden; margin-top: 12px"><div style="width: 39%; height: 100%; background: var(--verde)"></div></div>
+        <div style="font-size: 13px; color: var(--tinta-suave); margin-top: 12px; line-height: 1.5">
+          Los dos niños. Corte automático al llegar al tope.
+        </div>
+      </div>
+
+      <div style="background: var(--papel-alto); border: 1px solid var(--borde); border-radius: 12px; padding: 20px 22px; flex-grow: 1">
+        <div style="font-family: var(--display); font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--tinta-suave)">Del cuaderno</div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px">
+          <div style="aspect-ratio: 1; border-radius: 7px; background: oklch(0.93 0.012 85); border: 1px solid var(--borde)"></div>
+          <div style="aspect-ratio: 1; border-radius: 7px; background: oklch(0.93 0.012 85); border: 1px solid var(--borde)"></div>
+          <div style="aspect-ratio: 1; border-radius: 7px; background: oklch(0.93 0.012 85); border: 1px solid var(--borde)"></div>
+        </div>
+        <div style="font-size: 13px; color: var(--tinta-suave); margin-top: 12px; line-height: 1.5">
+          Fotos que sacó al cerrar cada bloque. Muestran cómo piensa, no solo si acertó.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

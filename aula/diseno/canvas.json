@@ -1,0 +1,48 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1024, "h": 768, "title": "Explorador · Inicio" },
+    { "file": "ExploradorSesion.dc.html", "x": 1104, "y": 0, "w": 1024, "h": 768, "title": "Explorador · Sesión con voz" },
+    { "file": "Diagnostico.dc.html", "x": 2208, "y": 0, "w": 1024, "h": 768, "title": "Diagnóstico adaptativo" },
+    { "file": "TallerInicio.dc.html", "x": 0, "y": 888, "w": 1440, "h": 900, "title": "Taller · Inicio" },
+    { "file": "TallerSesion.dc.html", "x": 1520, "y": 888, "w": 1440, "h": 900, "title": "Taller · Sesión socrática" },
+    { "file": "PanelPadres.dc.html", "x": 3040, "y": 888, "w": 1440, "h": 900, "title": "Panel de padres" }
+  ],
+  "annotations": [
+    {
+      "id": "nota-explorador",
+      "x": 0,
+      "y": -196,
+      "w": 620,
+      "text": "MODO EXPLORADOR · 7 años, tablet\n\nLa voz es principalmente salida: el tutor habla, el niño toca, arrastra o escribe. Con ~40% de error de reconocimiento en voces de 7 años, todo flujo que dependa de transcribir su habla libre está roto de origen."
+    },
+    {
+      "id": "nota-confirmacion",
+      "x": 1104,
+      "y": -196,
+      "w": 620,
+      "text": "LA TARJETA «ESCUCHÉ VEINTISIETE»\n\nEs la pieza que hace utilizable un 40% de WER: se espera un número, así que la transcripción se compara por distancia fonética contra el conjunto esperado y se confirma antes de evaluar. Un error de audio se vuelve un microintercambio simpático, no una injusticia. El teclado de al lado es la salida sin voz, siempre disponible."
+    },
+    {
+      "id": "nota-taller",
+      "x": 0,
+      "y": 1830,
+      "w": 660,
+      "text": "MODO TALLER · 13 años, laptop\n\nMismos tokens, otra piel: oscuro, denso, progreso como datos. Nada infantilizado — a los 13 eso ofende y expulsa. Sin mascota, sin confeti, sin porcentajes de felicitación."
+    },
+    {
+      "id": "nota-socratico",
+      "x": 1520,
+      "y": 1830,
+      "w": 660,
+      "text": "EL TUTOR NO DA LA RESPUESTA\n\nEl andamiaje escalonado es visible para el alumno: dos pistas y, al tercer bloqueo, un ejercicio análogo más simple — nunca el mismo problema resuelto. El panel derecho recuerda que los resultados los calcula SymPy, no el modelo. Abajo, la válvula de curiosidad: lo que preguntó fuera del plan queda anotado sin desviar la sesión."
+    },
+    {
+      "id": "nota-padres",
+      "x": 3040,
+      "y": 1830,
+      "w": 660,
+      "text": "EL PANEL NO ES DECORATIVO\n\nLa evidencia dice que un tutor de IA solo aporta 0,06-0,14 DE al año; lo que produce las 2 sigma de Bloom es mastery learning más el adulto involucrado. Por eso lo primero no es el progreso sino «dónde poner tu hora», y por eso las horas de adulto son una métrica de primera línea."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

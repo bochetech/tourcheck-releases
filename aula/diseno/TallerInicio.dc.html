@@ -1,0 +1,186 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+  <style>
+    :root {
+      --fondo: oklch(0.19 0.012 250);
+      --sup: oklch(0.235 0.014 250);
+      --sup-alta: oklch(0.285 0.016 250);
+      --tinta: oklch(0.94 0.006 250);
+      --tinta-suave: oklch(0.68 0.012 250);
+      --borde: oklch(0.33 0.016 250);
+      --teal: oklch(0.72 0.14 200);
+      --terracota: oklch(0.70 0.14 45);
+      --verde: oklch(0.72 0.14 145);
+      --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+      --lectura: "Literata", ui-serif, Georgia, serif;
+    }
+    body { margin: 0; background: var(--fondo); color: var(--tinta); font-family: var(--lectura); }
+    a { color: var(--teal); } a:hover { color: oklch(0.82 0.12 200); }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: var(--fondo); overflow: hidden">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 30px 44px; border-bottom: 1px solid var(--borde)">
+    <div style="display: flex; align-items: baseline; gap: 18px">
+      <span style="font-family: var(--display); font-size: 25px; font-weight: 800; letter-spacing: -0.01em">Aula</span>
+      <span style="color: var(--tinta-suave); font-size: 16px">Miércoles 8 de septiembre &middot; semana 27</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 26px">
+      <div style="display: flex; align-items: center; gap: 9px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M3 12h18" stroke="var(--tinta-suave)" stroke-width="2" stroke-linecap="round"/></svg>
+        <span style="font-size: 15px; color: var(--tinta-suave)">2 h 10 min hoy</span>
+      </div>
+      <div style="width: 38px; height: 38px; border-radius: 11px; background: var(--sup-alta); border: 1px solid var(--borde); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 600; font-size: 15px">SB</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 28px; padding: 32px 44px; flex-grow: 1">
+
+    <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 18px">
+      <div style="display: flex; align-items: baseline; justify-content: space-between">
+        <h2 style="margin: 0; font-family: var(--display); font-size: 21px; font-weight: 600; letter-spacing: -0.005em">Plan de hoy</h2>
+        <span style="font-size: 14px; color: var(--tinta-suave)">fijado anoche &middot; puedes reordenar</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 20px; background: var(--sup); border: 1px solid var(--borde); border-left: 3px solid var(--verde); border-radius: 12px; padding: 20px 24px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="var(--verde)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div style="flex-grow: 1">
+          <div style="font-family: var(--display); font-size: 17px; font-weight: 600; color: var(--tinta-suave); text-decoration: line-through">Repaso &middot; 6 tarjetas vencidas</div>
+        </div>
+        <span style="font-size: 14px; color: var(--tinta-suave); font-variant-numeric: tabular-nums">7 min</span>
+      </div>
+
+      <div style="background: var(--sup); border: 1px solid var(--teal); border-left: 3px solid var(--teal); border-radius: 12px; padding: 24px 26px; box-shadow: 0 0 0 3px oklch(0.72 0.14 200 / 0.10)">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px">
+          <div>
+            <div style="font-family: var(--display); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal)">Ahora &middot; Matemática</div>
+            <div style="font-family: var(--display); font-size: 23px; font-weight: 600; margin-top: 8px; letter-spacing: -0.005em">Ecuaciones de primer grado</div>
+            <div style="font-size: 15px; color: var(--tinta-suave); margin-top: 8px; line-height: 1.5; max-width: 500px">
+              MA07 OA 06 &middot; despejar la incógnita con coeficientes enteros.
+              Ayer quedaste a un paso: fallaste al cambiar el signo al pasar un término.
+            </div>
+          </div>
+          <span style="font-size: 14px; color: var(--tinta-suave); font-variant-numeric: tabular-nums; white-space: nowrap">40 min</span>
+        </div>
+        <button style="margin-top: 20px; height: 46px; padding: 0 26px; border: none; border-radius: 10px; background: var(--teal); color: oklch(0.19 0.012 250); font-family: var(--display); font-size: 16px; font-weight: 600; cursor: pointer">Continuar</button>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 20px; background: var(--sup); border: 1px solid var(--borde); border-radius: 12px; padding: 20px 24px">
+        <div style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--borde); flex-shrink: 0"></div>
+        <div style="flex-grow: 1">
+          <div style="font-family: var(--display); font-size: 17px; font-weight: 600">Lengua y Literatura &middot; taller de escritura</div>
+          <div style="font-size: 14px; color: var(--tinta-suave); margin-top: 5px">Tercera versión del ensayo sobre la migración</div>
+        </div>
+        <span style="font-size: 14px; color: var(--tinta-suave); font-variant-numeric: tabular-nums">55 min</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 20px; background: var(--sup); border: 1px solid var(--borde); border-radius: 12px; padding: 20px 24px">
+        <div style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--borde); flex-shrink: 0"></div>
+        <div style="flex-grow: 1">
+          <div style="font-family: var(--display); font-size: 17px; font-weight: 600">Ciencias &middot; proyecto</div>
+          <div style="font-size: 14px; color: var(--tinta-suave); margin-top: 5px">Medir la densidad de tres líquidos de la cocina</div>
+        </div>
+        <span style="font-size: 14px; color: var(--tinta-suave); font-variant-numeric: tabular-nums">30 min</span>
+      </div>
+
+      <div style="flex-grow: 1"></div>
+
+      <div style="display: flex; align-items: center; gap: 14px; padding: 18px 24px; border: 1px dashed var(--borde); border-radius: 12px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0">
+          <path d="M12 3l2.5 5.6 6.1.7-4.5 4.1 1.2 6-5.3-3-5.3 3 1.2-6L3.4 9.3l6.1-.7z" stroke="var(--terracota)" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+        <span style="font-size: 15px; color: var(--tinta-suave); flex-grow: 1">Tu meta de este mes: cerrar Álgebra antes del 30.</span>
+        <span style="font-family: var(--display); font-size: 15px; font-weight: 600; color: var(--terracota)">faltan 4 objetivos</span>
+      </div>
+    </div>
+
+    <div style="width: 372px; display: flex; flex-direction: column; gap: 26px">
+
+      <div>
+        <h2 style="margin: 0 0 16px 0; font-family: var(--display); font-size: 21px; font-weight: 600; letter-spacing: -0.005em">Dominio</h2>
+        <div style="display: flex; flex-direction: column; gap: 16px">
+
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px">
+              <span style="font-size: 15px">Matemática</span>
+              <span style="font-size: 14px; color: var(--tinta-suave); font-variant-numeric: tabular-nums">38 / 52</span>
+            </div>
+            <div style="height: 7px; border-radius: 4px; background: var(--sup-alta); overflow: hidden"><div style="width: 73%; height: 100%; background: var(--teal)"></div></div>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px">
+              <span style="font-size: 15px">Lengua y Literatura</span>
+              <span style="font-size: 14px; color: var(--tinta-suave); font-variant-numeric: tabular-nums">41 / 48</span>
+            </div>
+            <div style="height: 7px; border-radius: 4px; background: var(--sup-alta); overflow: hidden"><div style="width: 85%; height: 100%; background: var(--verde)"></div></div>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px">
+              <span style="font-size: 15px">Ciencias Naturales</span>
+              <span style="font-size: 14px; color: var(--tinta-suave); font-variant-numeric: tabular-nums">22 / 45</span>
+            </div>
+            <div style="height: 7px; border-radius: 4px; background: var(--sup-alta); overflow: hidden"><div style="width: 49%; height: 100%; background: var(--teal)"></div></div>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px">
+              <span style="font-size: 15px">Historia y Geografía</span>
+              <span style="font-size: 14px; color: var(--tinta-suave); font-variant-numeric: tabular-nums">19 / 44</span>
+            </div>
+            <div style="height: 7px; border-radius: 4px; background: var(--sup-alta); overflow: hidden"><div style="width: 43%; height: 100%; background: var(--teal)"></div></div>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px">
+              <span style="font-size: 15px; color: var(--terracota)">Inglés</span>
+              <span style="font-size: 14px; color: var(--tinta-suave); font-variant-numeric: tabular-nums">6 / 40</span>
+            </div>
+            <div style="height: 7px; border-radius: 4px; background: var(--sup-alta); overflow: hidden"><div style="width: 15%; height: 100%; background: var(--terracota)"></div></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="background: var(--sup); border: 1px solid var(--borde); border-radius: 12px; padding: 22px 24px">
+        <div style="font-family: var(--display); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tinta-suave)">Temario del examen libre</div>
+        <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 12px">
+          <span style="font-family: var(--display); font-size: 40px; font-weight: 800; letter-spacing: -0.02em; line-height: 1">61%</span>
+          <span style="font-size: 15px; color: var(--tinta-suave)">de 7º básico</span>
+        </div>
+        <div style="height: 7px; border-radius: 4px; background: var(--sup-alta); overflow: hidden; margin-top: 14px"><div style="width: 61%; height: 100%; background: var(--verde)"></div></div>
+        <div style="font-size: 14px; color: var(--tinta-suave); margin-top: 14px; line-height: 1.5">
+          Rendición en octubre. Al ritmo de las últimas cuatro semanas, llegas con holgura.
+        </div>
+      </div>
+
+      <div style="background: var(--sup); border: 1px solid var(--borde); border-radius: 12px; padding: 22px 24px">
+        <div style="font-family: var(--display); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tinta-suave)">Racha</div>
+        <div style="display: flex; gap: 7px; margin-top: 14px">
+          <div style="flex-grow: 1; height: 34px; border-radius: 5px; background: var(--verde)"></div>
+          <div style="flex-grow: 1; height: 34px; border-radius: 5px; background: var(--verde)"></div>
+          <div style="flex-grow: 1; height: 34px; border-radius: 5px; background: var(--sup-alta)"></div>
+          <div style="flex-grow: 1; height: 34px; border-radius: 5px; background: var(--verde)"></div>
+          <div style="flex-grow: 1; height: 34px; border-radius: 5px; background: var(--verde)"></div>
+          <div style="flex-grow: 1; height: 34px; border-radius: 5px; background: var(--verde)"></div>
+          <div style="flex-grow: 1; height: 34px; border-radius: 5px; border: 1px dashed var(--borde)"></div>
+        </div>
+        <div style="font-size: 14px; color: var(--tinta-suave); margin-top: 12px">5 de los últimos 6 días</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
