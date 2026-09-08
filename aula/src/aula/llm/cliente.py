@@ -36,6 +36,7 @@ class RespuestaLLM(BaseModel):
     modelo: str
     tokens_entrada: int = 0
     tokens_salida: int = 0
+    motivo_fin: str = ""
 
     def json_(self) -> Any:
         """Interpreta la respuesta como JSON, tolerando adornos del modelo."""
@@ -48,7 +49,17 @@ class RespuestaLLM(BaseModel):
         try:
             return json.loads(texto)
         except json.JSONDecodeError as exc:
-            raise ErrorLLM(f"la respuesta no es JSON válido: {exc}") from exc
+            # Sin esto, una respuesta cortada se reporta como "JSON inválido" y
+            # manda a depurar el sitio equivocado.
+            if self.motivo_fin == "length":
+                raise ErrorLLM(
+                    f"la respuesta se cortó por el tope de tokens "
+                    f"({self.tokens_salida} generados). Sube `max_tokens` del rol."
+                ) from exc
+            raise ErrorLLM(
+                f"la respuesta no es JSON válido: {exc}. "
+                f"Devolvió: {self.texto[:200]!r}"
+            ) from exc
 
 
 class Cliente:
@@ -96,6 +107,8 @@ class Cliente:
             "messages": mensajes,
             "temperature": self.modelo.temperatura,
             "max_tokens": self.modelo.max_tokens,
+            # Algunos servidores ya solo miran el nombre nuevo.
+            "max_completion_tokens": self.modelo.max_tokens,
         }
         if esquema is not None:
             cuerpo["response_format"] = {
@@ -115,6 +128,7 @@ class Cliente:
             modelo=datos.get("model", cuerpo["model"]),
             tokens_entrada=uso.get("prompt_tokens", 0) or 0,
             tokens_salida=uso.get("completion_tokens", 0) or 0,
+            motivo_fin=opciones[0].get("finish_reason") or "",
         )
 
     # -- interno ---------------------------------------------------------------

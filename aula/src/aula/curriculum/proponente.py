@@ -63,11 +63,22 @@ def esquema_de_propuesta(permitir_agregado: bool = True) -> dict[str, Any]:
 
 
 def _endurecer(nodo: Any) -> None:
-    """Cierra los objetos del esquema; varios servidores lo exigen en modo estricto."""
+    """Adapta el esquema a lo que aceptan los motores de gramáticas locales.
+
+    Tres ajustes, y el segundo lo aprendimos de un error real de LM Studio:
+
+    - Los objetos se cierran (`additionalProperties: false`), que varios
+      servidores exigen en modo estricto.
+    - `oneOf` pasa a `anyOf`. Pydantic genera `oneOf` para uniones discriminadas
+      y el motor de LM Studio lo rechaza de plano. Aquí el cambio es inocuo: las
+      variantes ya son mutuamente excluyentes por el `const` del campo `op`.
+    - Se quita el discriminador, que confunde a varios servidores locales.
+    """
     if isinstance(nodo, dict):
         if nodo.get("type") == "object" and "additionalProperties" not in nodo:
             nodo["additionalProperties"] = False
-        # El discriminador de Pydantic confunde a algunos servidores locales.
+        if "oneOf" in nodo and "anyOf" not in nodo:
+            nodo["anyOf"] = nodo.pop("oneOf")
         nodo.pop("discriminator", None)
         for valor in nodo.values():
             _endurecer(valor)

@@ -169,3 +169,20 @@ def test_el_bucle_completo_con_un_modelo_simulado():
     # La operación inventada se rechazó sin frenar a las otras dos.
     rechazadas = [a for a in reparacion.vueltas[0].aplicaciones if not a.aplicada]
     assert len(rechazadas) == 1 and "FANTASMA" in rechazadas[0].rechazo
+
+
+def test_el_esquema_no_usa_oneOf():
+    """El motor de gramáticas de LM Studio lo rechaza de plano.
+
+    Lo aprendimos de un error real: «oneOf constraints are not supported».
+    Pydantic lo genera para uniones discriminadas; aquí el cambio a anyOf es
+    inocuo porque las variantes ya son excluyentes por el const de `op`.
+    """
+    for permitir in (True, False):
+        serializado = json.dumps(esquema_de_propuesta(permitir))
+        assert "oneOf" not in serializado
+        assert "anyOf" in serializado
+
+
+def test_el_esquema_no_lleva_discriminador():
+    assert "discriminator" not in json.dumps(esquema_de_propuesta())

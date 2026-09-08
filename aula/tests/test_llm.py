@@ -131,3 +131,30 @@ def test_un_error_no_reintentable_no_se_reintenta():
     with pytest.raises(ErrorLLM, match="400"):
         c.completar([])
     assert len(registro) == 1
+
+
+def test_una_respuesta_cortada_se_reporta_como_corte_y_no_como_json_invalido():
+    """Sin esto, el error manda a depurar el sitio equivocado."""
+    respuestas = {"models": MODELOS_OK, "chat": {
+        "choices": [{"message": {"content": '{\\n "capital": "Santi'},
+                     "finish_reason": "length"}],
+        "usage": {"completion_tokens": 400},
+    }}
+    r = cliente(modelo="m", respuestas=respuestas).completar([])
+    assert r.motivo_fin == "length"
+    with pytest.raises(ErrorLLM, match="se cortó por el tope de tokens"):
+        r.json_()
+
+
+def test_un_json_invalido_sin_corte_muestra_lo_que_devolvio():
+    respuestas = {"models": MODELOS_OK, "chat": {
+        "choices": [{"message": {"content": "no soy JSON"}, "finish_reason": "stop"}]}}
+    with pytest.raises(ErrorLLM, match="no soy JSON"):
+        cliente(modelo="m", respuestas=respuestas).completar([]).json_()
+
+
+def test_se_manda_tambien_el_nombre_nuevo_del_tope_de_tokens():
+    """Algunos servidores ya solo miran max_completion_tokens."""
+    registro = []
+    cliente(modelo="m", registro=registro).completar([])
+    assert registro[0]["cuerpo"]["max_completion_tokens"] == registro[0]["cuerpo"]["max_tokens"]

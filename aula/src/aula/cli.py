@@ -393,7 +393,13 @@ def config_test(
         console.print(f"  [bold]{r.value}[/bold]  [dim]{cfg.modelo}[/dim]")
         inicio = time.monotonic()
         try:
-            respuesta = para_rol(config, r).completar(
+            cliente_prueba = para_rol(config, r)
+            # El tope del tutor está pensado para respuestas de 2-3 frases; para
+            # un diagnóstico conviene dar aire y no confundir corte con fallo.
+            cliente_prueba.modelo = cliente_prueba.modelo.model_copy(
+                update={"max_tokens": max(cliente_prueba.modelo.max_tokens, 512)}
+            )
+            respuesta = cliente_prueba.completar(
                 [
                     {"role": "system", "content": "Responde solo con el JSON pedido."},
                     {"role": "user", "content": "Datos de Chile."},
