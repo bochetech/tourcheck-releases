@@ -18,6 +18,7 @@ El diseño completo, con la investigación que lo sostiene, está en
 | Índice de legibilidad en español (Fernández Huerta) | ✅ funciona |
 | Lectura/escritura YAML diffeable | ✅ funciona |
 | CLI `aula curriculum validate` | ✅ funciona |
+| **Configuración de modelos por rol** | ✅ funciona, 4 perfiles |
 | Importador desde `curriculumnacional.cl` | ⬜ siguiente |
 | Bucle de auto-reparación | ⬜ siguiente |
 | Motor socrático, anclaje, voz | ⬜ fases 2-5 |
@@ -63,16 +64,60 @@ bucle no logró cerrar.
 Las advertencias **no frenan el arranque**: van a la cola de excepciones y se
 revisan mientras los niños ya usan el sistema.
 
+## Modelos configurables, por rol
+
+No hay "un modelo": hay **roles** con exigencias y precios muy distintos.
+
+| Rol | Cuándo corre | Qué necesita |
+| --- | --- | --- |
+| `tutor` | cada turno, con el niño delante | sostener el método socrático |
+| `anclaje` | cada turno | ser barato; es una clasificación binaria |
+| `rubrica` | al cerrar un bloque | criterio, con la rúbrica en contexto |
+| `extraccion` | una vez por nivel | fidelidad al documento oficial |
+| `enriquecimiento` | una vez por nivel | razonamiento: infiere los prerrequisitos |
+| `items` | una vez por nivel | variedad |
+| `resumen` | una vez por objetivo | densidad; **son el índice RAG** |
+
+Cuatro perfiles en `config/modelos.yaml`:
+
+| Perfil | Reparto | Coste |
+| --- | --- | --- |
+| `local` | todo en el Mac | 0 |
+| **`plan-premium`** | **construir el plan en la nube, dar clases en local** | ~5-20 USD una vez por nivel, ~0/mes |
+| `hibrido` | tutor en la nube, resto local | ~2-8 USD/mes |
+| `nube` | todo en la nube | ~8-16 USD/mes |
+
+`plan-premium` es el reparto recomendado, y la razón es que **la calidad del plan
+se acumula y la de una clase no**: un prerrequisito mal inferido envenena todas
+las sesiones futuras de ese tema, mientras que un turno flojo se corrige en el
+turno siguiente. Caro donde el error es permanente, barato donde es recuperable.
+
+Lo único que hay que medir antes de fiarse: que el modelo local **sostenga el
+método socrático** cuando el niño insista en que le den la respuesta. Si cede, el
+tutor es la única pieza que vale la pena pagar — para eso está `hibrido`.
+
+La configuración **traduce los términos de uso en código**: los roles marcados
+con `•` procesan lo que dice un niño en vivo, y apuntarlos a un proveedor cuyos
+términos exigen 18 años es un error de configuración, no una nota al pie.
+
+Comparar local contra nube no exige editar archivos:
+
+```bash
+AULA_MODELO_TUTOR=gpt-5-mini AULA_PROVEEDOR_TUTOR=openai aula config show
+```
+
 ## Correr
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
-pytest                                                   # 31 tests
+pytest                                                   # 43 tests
 aula curriculum validate ejemplos/cl-2basico-matematica.yaml   # pasa
 aula curriculum validate ejemplos/cl-2basico-roto.yaml         # 4 bloqueantes
 aula curriculum validate ejemplos/cl-2basico-roto.yaml --json  # para el bucle
+
+aula config show --perfil plan-premium                   # modelos por rol
 ```
 
 Base de datos local (Postgres + pgvector), cuando haga falta:

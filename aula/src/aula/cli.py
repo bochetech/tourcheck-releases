@@ -11,15 +11,19 @@ import sys
 from pathlib import Path
 
 import typer
+from rich import box
 from rich.console import Console
 from rich.table import Table
 
+from aula.config import ROLES_CARA_AL_NINO, Rol, cargar_config
 from aula.curriculum.io import cargar
 from aula.curriculum.validator import Severidad, validar
 
 app = typer.Typer(help="Aula — tutoría con IA anclada a un currículo validado.")
 curriculum_app = typer.Typer(help="Importar, validar y versionar planes de estudio.")
+config_app = typer.Typer(help="Ver y comprobar la configuración de modelos.")
 app.add_typer(curriculum_app, name="curriculum")
+app.add_typer(config_app, name="config")
 
 console = Console()
 err_console = Console(stderr=True)
@@ -90,6 +94,68 @@ def validate(
             "Cada hallazgo trae su instrucción de reparación: usa --json para el bucle."
         )
     raise typer.Exit(code=0 if resultado.ok else 1)
+
+
+@config_app.command("show")
+def config_show(
+    perfil: str = typer.Option(None, "--perfil", "-p", help="Perfil a inspeccionar."),
+) -> None:
+    """Muestra qué modelo usa cada rol y avisa de lo que va a fallar o costar."""
+    try:
+        config = cargar_config(perfil=perfil)
+    except (KeyError, OSError) as exc:
+        err_console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=2) from exc
+
+    console.print()
+    console.print(f"  Perfil activo  [bold cyan]{config.perfil}[/bold cyan]")
+    console.print()
+
+    tabla = Table(
+        box=box.SIMPLE_HEAD,
+        header_style="bold dim",
+        padding=(0, 1),
+        show_edge=False,
+        pad_edge=False,
+    )
+    tabla.add_column("  Rol", width=19, no_wrap=True)
+    tabla.add_column("Dónde", width=5, no_wrap=True)
+    tabla.add_column("Modelo", width=26, no_wrap=True, overflow="ellipsis")
+    tabla.add_column("Salida", width=7, justify="right", no_wrap=True)
+    tabla.add_column("Contexto", width=8, justify="right", no_wrap=True)
+
+    for rol in Rol:
+        if rol not in config.roles:
+            continue
+        cfg = config.para(rol)
+        prov = config.proveedores.get(cfg.proveedor)
+        local = prov is not None and not prov.base_url.startswith("https://")
+        marca = "[cyan]•[/cyan]" if rol in ROLES_CARA_AL_NINO else " "
+        tabla.add_row(
+            f"  {marca} {rol.value}",
+            "[green]local[/green]" if local else "[yellow]nube[/yellow]",
+            f"[dim]{cfg.proveedor}[/dim] {cfg.modelo}",
+            f"{cfg.max_tokens:,}",
+            f"{cfg.presupuesto_contexto:,}" if cfg.presupuesto_contexto else "[dim]—[/dim]",
+        )
+
+    console.print(tabla)
+    console.print("  [dim][cyan]•[/cyan] el niño interactúa con este rol en vivo[/dim]")
+    console.print()
+
+    avisos = config.revisar()
+    if not avisos:
+        console.print("  [green]Configuración coherente.[/green]")
+        console.print()
+        raise typer.Exit(code=0)
+
+    for aviso in avisos:
+        color = "red" if aviso.grave else "yellow"
+        etiqueta = "error" if aviso.grave else "aviso"
+        donde = f" {aviso.rol.value}" if aviso.rol else ""
+        console.print(f"  [{color}]{etiqueta}[/{color}]{donde} — {aviso.mensaje}")
+    console.print()
+    raise typer.Exit(code=1 if any(a.grave for a in avisos) else 0)
 
 
 def main() -> None:  # pragma: no cover - punto de entrada

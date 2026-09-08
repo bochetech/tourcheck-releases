@@ -1,0 +1,217 @@
+# Qué modelo usa cada rol. Editable sin tocar código.
+#
+# Los roles no son intercambiables: el tutor tiene que sostener el método
+# socrático, el anclaje corre en cada turno y debe ser barato, y la extracción
+# va por lotes sin ningún niño delante.
+
+perfil_por_defecto: local
+
+proveedores:
+  ollama:
+    base_url: http://localhost:11434/v1
+    api_key_env: OLLAMA_API_KEY
+    apto_para_menores: true
+    notas: >-
+      Corre en tu Mac. Los datos del niño no salen de casa, así que no hay
+      términos de terceros que apliquen.
+
+  lmstudio:
+    base_url: http://localhost:1234/v1
+    api_key_env: LMSTUDIO_API_KEY
+    apto_para_menores: true
+    notas: Igual que Ollama; expone la misma interfaz compatible con OpenAI.
+
+  openai:
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+    apto_para_menores: true
+    notas: >-
+      Único proveedor grande que documenta el uso por menores de 13 a 17 años
+      con permiso de padre o tutor, y ofrece retención cero de datos.
+
+  anthropic:
+    base_url: https://api.anthropic.com/v1
+    api_key_env: ANTHROPIC_API_KEY
+    apto_para_menores: false
+    notas: >-
+      Sus términos exigen 18 años y no documentan consentimiento parental. Sirve
+      para tareas por lotes sin niño delante, no para el tutor en vivo. Ojo: la
+      suscripción Pro/Max no incluye créditos de API, se compran aparte.
+
+  google:
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key_env: GEMINI_API_KEY
+    apto_para_menores: false
+    notas: >-
+      La API para desarrolladores exige 18 años y prohíbe servicios dirigidos a
+      menores. Family Link aplica a su app de consumo, no a lo que construyas tú.
+
+perfiles:
+
+  # Todo en el Mac. Coste 0. Para desarrollar e iterar sin cuotas.
+  local:
+    tutor:
+      proveedor: ollama
+      modelo: qwen2.5:7b
+      temperatura: 0.3
+      max_tokens: 400          # el tutor responde en 2-3 frases, no en párrafos
+      presupuesto_contexto: 1500
+    anclaje:
+      proveedor: ollama
+      modelo: qwen2.5:1.5b     # es una clasificación binaria, no hace falta más
+      temperatura: 0.0
+      max_tokens: 64
+    rubrica:
+      proveedor: ollama
+      modelo: qwen2.5:7b
+      temperatura: 0.0
+      max_tokens: 600
+    extraccion:
+      proveedor: ollama
+      modelo: qwen2.5:7b
+      temperatura: 0.0
+      max_tokens: 4000
+    enriquecimiento:
+      proveedor: ollama
+      modelo: qwen2.5:7b
+      temperatura: 0.1
+      max_tokens: 2000
+    items:
+      proveedor: ollama
+      modelo: qwen2.5:7b
+      temperatura: 0.7         # variedad en los ejercicios generados
+      max_tokens: 2000
+    resumen:
+      proveedor: ollama
+      modelo: qwen2.5:1.5b
+      temperatura: 0.0
+      max_tokens: 200
+
+  # RECOMENDADO para empezar en serio.
+  #
+  # Caro donde el error es permanente, barato donde es recuperable: construir el
+  # plan y los resúmenes del índice RAG pasa una vez por nivel y un prerrequisito
+  # mal inferido envenena todas las sesiones futuras de ese tema; ejecutar clases
+  # pasa miles de veces y un turno flojo se corrige en el turno siguiente.
+  #
+  # Coste: ~5-20 USD una sola vez por nivel, y ~0 al mes de operación.
+  #
+  # Lo único que hay que medir antes de fiarse: que el modelo local sostenga el
+  # método socrático cuando el niño insista en que le den la respuesta. Si cede,
+  # el tutor es la única pieza que vale la pena pagar (perfil `hibrido`).
+  plan-premium:
+    tutor:
+      proveedor: ollama
+      modelo: qwen2.5:7b
+      temperatura: 0.3
+      max_tokens: 400
+      presupuesto_contexto: 1500
+    anclaje:
+      proveedor: ollama
+      modelo: qwen2.5:1.5b
+      temperatura: 0.0
+      max_tokens: 64
+    rubrica:
+      proveedor: ollama
+      modelo: qwen2.5:7b
+      temperatura: 0.0
+      max_tokens: 600
+    extraccion:
+      proveedor: anthropic
+      modelo: claude-sonnet-5
+      temperatura: 0.0
+      max_tokens: 8000
+    enriquecimiento:
+      proveedor: anthropic     # inferir el grafo de prerrequisitos es lo que
+      modelo: claude-opus-5    # ningún ministerio publica y lo que más compone
+      temperatura: 0.1
+      max_tokens: 4000
+    items:
+      proveedor: anthropic
+      modelo: claude-sonnet-5
+      temperatura: 0.7
+      max_tokens: 4000
+    resumen:
+      proveedor: anthropic     # estos resúmenes SON el índice RAG: se escriben
+      modelo: claude-haiku-4-5 # una vez y se leen en cada turno durante años
+      temperatura: 0.0
+      max_tokens: 200
+
+  # Recomendado para las sesiones reales: el tutor en la nube, el resto local.
+  # El tutor es donde se nota la diferencia; lo demás no la justifica.
+  hibrido:
+    tutor:
+      proveedor: openai
+      modelo: gpt-5-mini
+      temperatura: 0.3
+      max_tokens: 400
+      presupuesto_contexto: 1500
+    anclaje:
+      proveedor: ollama
+      modelo: qwen2.5:1.5b
+      temperatura: 0.0
+      max_tokens: 64
+    rubrica:
+      proveedor: openai
+      modelo: gpt-5-mini
+      temperatura: 0.0
+      max_tokens: 600
+    extraccion:
+      proveedor: anthropic     # por lotes, sin niño delante
+      modelo: claude-haiku-4-5
+      temperatura: 0.0
+      max_tokens: 8000
+    enriquecimiento:
+      proveedor: anthropic     # inferir prerrequisitos pide buen razonamiento
+      modelo: claude-sonnet-5
+      temperatura: 0.1
+      max_tokens: 4000
+    items:
+      proveedor: anthropic
+      modelo: claude-haiku-4-5
+      temperatura: 0.7
+      max_tokens: 4000
+    resumen:
+      proveedor: ollama
+      modelo: qwen2.5:1.5b
+      temperatura: 0.0
+      max_tokens: 200
+
+  # Todo en la nube. Máxima calidad, y aun así son unos pocos dólares al mes.
+  nube:
+    tutor:
+      proveedor: openai
+      modelo: gpt-5
+      temperatura: 0.3
+      max_tokens: 400
+      presupuesto_contexto: 4000
+    anclaje:
+      proveedor: openai
+      modelo: gpt-5-nano
+      temperatura: 0.0
+      max_tokens: 64
+    rubrica:
+      proveedor: openai
+      modelo: gpt-5-mini
+      temperatura: 0.0
+      max_tokens: 600
+    extraccion:
+      proveedor: anthropic
+      modelo: claude-sonnet-5
+      temperatura: 0.0
+      max_tokens: 8000
+    enriquecimiento:
+      proveedor: anthropic
+      modelo: claude-opus-5
+      temperatura: 0.1
+      max_tokens: 4000
+    items:
+      proveedor: anthropic
+      modelo: claude-sonnet-5
+      temperatura: 0.7
+      max_tokens: 4000
+    resumen:
+      proveedor: openai
+      modelo: gpt-5-nano
+      temperatura: 0.0
+      max_tokens: 200
